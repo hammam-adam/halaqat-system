@@ -199,7 +199,7 @@ h1,h2,h3,h4{letter-spacing:0}
 
   const s = document.createElement("script");
   s.src = "core.js";
-  s.onload = () => { const c = document.createElement("script"); c.src = "custody.js"; c.onload = () => { const x = document.createElement("script"); x.src = "extras.js"; x.onload = start; document.body.appendChild(x); }; document.body.appendChild(c); };
+  s.onload = () => { const c = document.createElement("script"); c.src = "custody.js"; c.onload = () => { const x = document.createElement("script"); x.src = "extras.js"; x.onload = () => { const y = document.createElement("script"); y.src = "settings.js"; y.onload = start; document.body.appendChild(y); }; document.body.appendChild(x); }; document.body.appendChild(c); };
   document.body.appendChild(s);
 
   function start(){
@@ -221,6 +221,7 @@ h1,h2,h3,h4{letter-spacing:0}
       try { const { data, error } = await SB.rpc(fn, args); return error ? { error: "network" } : data; }
       catch (e) { return { error: "network" }; }
     };
+    window.appRpc = (fn, args) => rpc(fn, { p_token: token, ...(args || {}) });
     const showErr = (el, code) => { el.textContent = MSG[code] || MSG.network; el.hidden = false; };
     const origStep = authStep;
     window.authStep = step => { if (inside && step) return; origStep(step); };

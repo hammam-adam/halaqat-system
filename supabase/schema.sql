@@ -167,7 +167,7 @@ $function$
 ;
 
 CREATE OR REPLACE FUNCTION public._me(p_token text)
- RETURNS members
+ RETURNS public.members
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO ''
@@ -1146,6 +1146,92 @@ end $function$
 ;
 ;
 
+-- ===== system settings from the site (admins only): org name, WhatsApp sender number and WasenderAPI key =====
+insert into public.app_config(key,value) values ('wa_number','') on conflict do nothing;
+
+CREATE OR REPLACE FUNCTION public.config_get(p_token text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare me public.members := public._me(p_token); k text;
+begin
+  if me.phone is null then return jsonb_build_object('error','invalid_session'); end if;
+  if me.role <> 'admin' then return jsonb_build_object('error','forbidden'); end if;
+  select decrypted_secret into k from vault.decrypted_secrets where name = public._cfg('wa_secret') limit 1;
+  return jsonb_build_object('ok', true,
+    'org_name', public._cfg('org_name'),
+    'site_url', public._cfg('site_url'),
+    'wa_number', public._cfg('wa_number'),
+    'has_key', coalesce(k,'') <> '',
+    'key_hint', case when coalesce(length(k),0) >= 8 then '••••' || right(k, 4) else '' end);
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION public.config_set(p_token text, p_org_name text, p_wa_number text, p_wa_key text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare me public.members := public._me(p_token); v_name text := public._cfg('wa_secret'); v_id uuid; v_num text;
+begin
+  if me.phone is null then return jsonb_build_object('error','invalid_session'); end if;
+  if me.role <> 'admin' then return jsonb_build_object('error','forbidden'); end if;
+  if p_org_name is not null then
+    if length(trim(p_org_name)) not between 2 and 80 then return jsonb_build_object('error','bad_name'); end if;
+    update public.app_config set value = trim(p_org_name) where key = 'org_name';
+    insert into public.docs(collection, id, data) values ('settings','main', jsonb_build_object('orgName', trim(p_org_name)))
+      on conflict (collection, id) do update set data = public.docs.data || jsonb_build_object('orgName', trim(p_org_name));
+  end if;
+  if p_wa_number is not null then
+    v_num := case when trim(p_wa_number) = '' then '' else public._norm_phone(p_wa_number) end;
+    if v_num is null then return jsonb_build_object('error','bad_phone'); end if;
+    update public.app_config set value = v_num where key = 'wa_number';
+  end if;
+  if coalesce(trim(p_wa_key),'') <> '' then
+    if length(trim(p_wa_key)) < 16 or trim(p_wa_key) ~ '\s' then return jsonb_build_object('error','bad_key'); end if;
+    select id into v_id from vault.secrets where name = v_name limit 1;
+    if v_id is null then perform vault.create_secret(trim(p_wa_key), v_name, 'WasenderAPI key');
+    else perform vault.update_secret(v_id, trim(p_wa_key)); end if;
+  end if;
+  return jsonb_build_object('ok', true);
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION public.wa_test(p_token text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare me public.members := public._me(p_token); v_id bigint;
+begin
+  if me.phone is null then return jsonb_build_object('error','invalid_session'); end if;
+  if me.role <> 'admin' then return jsonb_build_object('error','forbidden'); end if;
+  v_id := public._wa_enqueue(me.phone, public._fmt('✅', 'رسالة تجربة', 'إعدادات واتساب تعمل بشكل صحيح.'), 0);
+  if v_id is null then return jsonb_build_object('error','sender_not_configured'); end if;
+  return jsonb_build_object('ok', true, 'id', v_id);
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION public.wa_status(p_token text, p_id bigint)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare me public.members := public._me(p_token); o public.wa_outbox;
+begin
+  if me.phone is null then return jsonb_build_object('error','invalid_session'); end if;
+  if me.role <> 'admin' then return jsonb_build_object('error','forbidden'); end if;
+  select * into o from public.wa_outbox where id = p_id;
+  if o.id is null then return jsonb_build_object('error','not_found'); end if;
+  return jsonb_build_object('ok', true, 'status', o.status, 'error', o.last_error);
+end $function$
+;
+
 -- trigger
 create trigger docs_touch before insert or update on public.docs for each row execute function public.touch_doc();
 
@@ -1154,7 +1240,7 @@ revoke execute on all functions in schema public from public, anon, authenticate
 grant usage on schema public to anon, authenticated;
 do $$ declare f regprocedure; begin
   for f in select p.oid::regprocedure from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-    where n.nspname = 'public' and p.proname = any(array['app_delete','app_load','app_put','cust_cancel','cust_close','cust_decide','cust_file','cust_issue','cust_item_add','cust_item_del','cust_list','cust_remind','cust_request','cust_return','cust_submit','cust_submit_kind','login_request','login_verify','logout','member_add','member_remove','member_update','members_list','msg_list','msg_send','session_info','task_add','task_del','task_done','task_list','task_reopen']) loop
+    where n.nspname = 'public' and p.proname = any(array['app_delete','app_load','app_put','cust_cancel','cust_close','cust_decide','cust_file','cust_issue','cust_item_add','cust_item_del','cust_list','cust_remind','cust_request','cust_return','cust_submit','cust_submit_kind','login_request','login_verify','logout','member_add','member_remove','member_update','members_list','msg_list','msg_send','session_info','task_add','task_del','task_done','task_list','task_reopen','config_get','config_set','wa_test','wa_status']) loop
     execute format('grant execute on function %s to anon, authenticated', f);
   end loop; end $$;
 

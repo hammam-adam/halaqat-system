@@ -9,8 +9,7 @@
 
 ## تشغيل نسخة جديدة
 1. أنشئ مشروع Supabase جديد وشغّل `supabase/schema.sql` في SQL Editor.
-2. أضف مفتاح WasenderAPI في Vault باسم `wasender_api_key`:
-   `select vault.create_secret('<KEY>', 'wasender_api_key');`
+2. ادخل الموقع كمدير، وأضف رقم واتساب ومفتاح WasenderAPI من صفحة المستخدمين ← إعدادات النظام وواتساب.
 3. عدّل `app_config` (اسم المجمع ورابط الموقع)، وأضف أول مدير:
    `insert into members(phone,name,role) values ('9665XXXXXXXX','الاسم','admin');`
 4. ضع رابط المشروع ومفتاحه العام في `config.js`، وانشر المجلد على Vercel.
