@@ -1,6 +1,5 @@
-// إعدادات النظام (للمدير فقط) أسفل صفحة المستخدمين:
-// الهوية والمظهر (الاسم، السطر التعريفي، الشعار، الألوان)، وربط واتساب عبر WasenderAPI مع تعليمات خطوة بخطوة.
-// ويضيف لكل مستخدم اختيار الوضع (فاتح، داكن، حسب الجهاز) أسفل القائمة الجانبية.
+// صفحة الإعدادات: حسابي (كلمة المرور)، المظهر (الوضع لكل مستخدم، والهوية والألوان للمدير)،
+// والمستخدمون وربط واتساب عبر WasenderAPI (للمدير فقط).
 (function(){
   const css = document.createElement("style");
   css.textContent = `
@@ -25,11 +24,14 @@
 .swatch i b{position:absolute;inset-inline-start:0;bottom:0;width:100%;height:9px}
 .swatch span{font-size:12px}
 .seg.mode-seg button{padding:6px 10px;font-size:12.5px}
-.side-mode{display:grid;gap:6px;margin-bottom:10px}
-.side-mode span{font-size:12px;color:var(--side-muted)}
-.side-mode .seg{background:var(--side-2);border-color:var(--side-line)}
-.side-mode .seg{display:flex;width:100%}.side-mode .seg button{color:var(--side-fg);flex:1;padding:5px 6px;font-size:12px;white-space:nowrap}
-.side-mode .seg button[aria-pressed="true"]{background:var(--side-fg);color:var(--side)}
+.set-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;margin-bottom:16px;width:fit-content;max-width:100%}
+.set-tabs button{padding:8px 16px;white-space:nowrap;flex:1 0 auto}
+@media (max-width:560px){.set-tabs{width:100%}.set-tabs button{padding:8px 10px}}
+.set-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.set-row .hint{margin:0;font-size:13px;color:var(--muted);line-height:1.7;max-width:60ch}
+.sys-panel:first-child{margin-top:0}
+.pw-init{display:inline-flex;gap:6px;align-items:center;font-size:12.5px}
+.pw-init code{font-family:ui-monospace,monospace;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;direction:ltr}
 .wa-steps{margin:0;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
 .wa-steps summary{cursor:pointer;font-weight:600}
 .wa-steps ol{margin:12px 0 0;padding-inline-start:22px;display:grid;gap:8px;line-height:1.8;font-size:13.5px}
@@ -53,19 +55,87 @@
   const modeSeg = () => `<div class="seg mode-seg" role="group" aria-label="وضع العرض">${MODES.map(([k, t]) => `<button type="button" data-mode-pick="${k}" aria-pressed="${Brand.mode() === k}"${k === "system" ? ' title="يتبع إعداد الجهاز"' : ""}>${t}</button>`).join("")}</div>`;
   document.addEventListener("click", e => { const b = e.target.closest("[data-mode-pick]"); if (b) Brand.setMode(b.dataset.modePick); });
 
-  /* اختيار الوضع لكل مستخدم أسفل القائمة الجانبية */
-  const who = document.querySelector(".side-foot .who-me");
-  if (who && !document.querySelector(".side-mode")) {
-    const d = document.createElement("div"); d.className = "side-mode";
-    d.innerHTML = `<span>المظهر</span>${modeSeg()}`;
-    who.insertBefore(d, who.querySelector("[data-signout]"));
+  /* ---------- صفحة الإعدادات: حسابي، المظهر، المستخدمون، واتساب ---------- */
+  const GEAR = `<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>`;
+  const navSet = document.getElementById("navUsers");
+  if (navSet) { navSet.dataset.view = "settings"; navSet.innerHTML = GEAR + "الإعدادات"; navSet.hidden = false; }
+  const TABS = [["account", "حسابي", false], ["look", "المظهر", false], ["users", "المستخدمون", true], ["wa", "واتساب", true]];
+  let tab = "account";
+  try { tab = localStorage.getItem("halaqat.setTab") || "account"; } catch (e) {}
+  const tabsFor = () => TABS.filter(t => !t[2] || S.isAdmin);
+
+  views.settings = {
+    shell(){
+      if (!tabsFor().some(t => t[0] === tab)) tab = "account";
+      return `<div class="page">${pageHead("الإعدادات", "حسابك وكلمة المرور، ومظهر الموقع" + (S.isAdmin ? "، والمستخدمون وربط واتساب." : "."), "")}
+<div class="seg set-tabs" role="tablist">${tabsFor().map(([k, t]) => `<button type="button" role="tab" data-set-tab="${k}" aria-pressed="${k === tab}">${t}</button>`).join("")}</div>
+<div id="setBody"></div></div>`;
+    },
+    bind(){
+      $(".set-tabs").onclick = e => { const b = e.target.closest("[data-set-tab]"); if (!b) return; tab = b.dataset.setTab; try { localStorage.setItem("halaqat.setTab", tab); } catch (x) {}
+        document.querySelectorAll("[data-set-tab]").forEach(x => x.setAttribute("aria-pressed", x === b)); paintTab(); };
+      paintTab();
+    },
+    fill(){ if (tab === "users" && $("#memberList")) views.users.fill(); }
+  };
+  function paintTab(){
+    const body = $("#setBody"); if (!body) return;
+    if (tab === "users") {
+      body.innerHTML = `<div class="set-row"><p class="hint">الأرقام المسموح لها بالدخول. كل مستخدم يدخل بكلمة المرور أو برمز يصله على واتساب. اضغط على المستخدم لتعديله أو لتعيين كلمة مرور جديدة له.</p><button class="btn primary" type="button" id="addMember">${ICON.plus}مستخدم جديد</button></div><section class="panel" id="memberList"></section>`;
+      views.users.bind(); views.users.fill(); loadMembers();
+    } else if (tab === "look") {
+      body.innerHTML = `<section class="panel sys-panel"><header><h3>وضع العرض</h3></header><div class="ss-body">${modeSeg()}<p class="hint">«تلقائي» يتبع إعداد جهازك. الاختيار يُحفظ على هذا الجهاز فقط، وكل مستخدم يختار لجهازه.</p></div></section>` +
+        (S.isAdmin ? `<section class="panel sys-panel" id="brandSettings"><header><h3>الهوية والألوان</h3></header><div class="ss-body"><p class="hint">جارٍ التحميل…</p></div></section>` : "");
+      if (S.isAdmin) paintBrand();
+    } else if (tab === "wa") {
+      body.innerHTML = `<section class="panel sys-panel" id="sysSettings"><header><h3>ربط واتساب</h3></header><div class="ss-body"><p class="hint">جارٍ التحميل…</p></div></section>`;
+      paintWa();
+    } else paintAccount();
   }
 
-  const shell = views.users.shell;
-  views.users.shell = function(){
-    return shell.call(this).replace(/<\/div>\s*$/, `
-<section class="panel sys-panel" id="brandSettings"><header><h3>الهوية والمظهر</h3></header><div class="ss-body"><p class="hint">جارٍ التحميل…</p></div></section>
-<section class="panel sys-panel" id="sysSettings"><header><h3>ربط واتساب</h3></header><div class="ss-body"><p class="hint">جارٍ التحميل…</p></div></section></div>`);
+  /* حسابي: كلمة المرور */
+  async function paintAccount(){
+    const body = $("#setBody");
+    body.innerHTML = `<section class="panel sys-panel"><header><h3>كلمة المرور</h3></header><div class="ss-body"><p class="hint">جارٍ التحميل…</p></div></section>`;
+    const r = await appRpc("session_info");
+    const box = body.querySelector(".ss-body"); if (!box) return;
+    const has = !!r?.has_password, fromAdmin = !!r?.password_from_admin;
+    box.innerHTML = `<p class="hint">${!has ? "ما عندك كلمة مرور بعد. ضع كلمة مرور تدخل بها بدل انتظار رمز واتساب." : fromAdmin ? "كلمة مرورك الحالية وضعها مدير النظام ويقدر يشوفها. غيّرها لكلمة مرور تعرفها أنت فقط." : "تقدر تدخل بكلمة مرورك أو برمز واتساب. إذا نسيتها ادخل بالرمز وغيّرها من هنا."}</p>
+<form id="pwForm" class="ss-grid" novalidate>
+<div class="field"><label class="lbl" for="pwNew">كلمة المرور الجديدة</label><input type="password" id="pwNew" autocomplete="new-password" dir="ltr" minlength="6"></div>
+<div class="field"><label class="lbl" for="pwNew2">أعد كتابتها</label><input type="password" id="pwNew2" autocomplete="new-password" dir="ltr"></div>
+</form>
+<div class="ss-actions"><button class="btn primary" type="submit" form="pwForm">${has ? "تغيير كلمة المرور" : "حفظ كلمة المرور"}</button><span class="ss-status" id="pwStatus">6 أحرف على الأقل.</span></div>`;
+    $("#pwForm").onsubmit = async e => {
+      e.preventDefault();
+      const a = $("#pwNew").value, b = $("#pwNew2").value;
+      if (a.length < 6 || a.length > 64) return say("pwStatus", "bad", "كلمة المرور من 6 إلى 64 حرفًا.");
+      if (a !== b) return say("pwStatus", "bad", "الكلمتان غير متطابقتين.");
+      const btn = document.querySelector('[form="pwForm"]'); btn.disabled = true;
+      const x = await appRpc("password_change", { p_new: a });
+      btn.disabled = false;
+      if (x?.error) return say("pwStatus", "bad", x.error === "bad_password" ? "كلمة المرور من 6 إلى 64 حرفًا." : MSG.network);
+      toast("حُفظت كلمة المرور"); paintAccount();
+    };
+  }
+
+  /* الضغط على الشعار يرجع للرئيسية */
+  const brandEl = document.querySelector(".side-brand");
+  if (brandEl) { brandEl.style.cursor = "pointer"; brandEl.title = "الرئيسية";
+    brandEl.addEventListener("click", () => { show(S.isAdmin || S.db ? "summary" : "custody"); window.scrollTo({ top: 0 }); }); }
+
+  const prevShow = window.show;
+  window.show = function(v){
+    if (v === "users") { v = "settings"; tab = "users"; }
+    if (v !== "settings") return prevShow(v);
+    S.view = "settings"; storeSet("halaqat.view", "settings");
+    $("#view").innerHTML = views.settings.shell();
+    views.settings.bind(); paintHeader();
+  };
+  const prevPaint = window.paintHeader;
+  window.paintHeader = function(){
+    prevPaint.apply(this, arguments);
+    if (navSet) { navSet.hidden = false; navSet.setAttribute("aria-selected", S.view === "settings" ? "true" : "false"); }
   };
 
   /* ---------- الهوية والمظهر ---------- */
@@ -109,7 +179,6 @@
   <p class="hint">يُفضّل PNG بخلفية شفافة. يظهر في القائمة وشاشة الدخول والسندات المطبوعة وأيقونة المتصفح.</p></div></div></div>
 <div class="field"><span class="lbl">ألوان الموقع</span><div class="swatches" id="bSw">${swatches()}</div>
   <p class="hint">«من الشعار» يأخذ ألوانه من الشعار المرفوع تلقائيًا. تقدر تختار أي ثيم وتشوف أثره مباشرة قبل الحفظ.</p></div>
-<div class="field"><span class="lbl">وضع العرض على هذا الجهاز</span>${modeSeg()}<p class="hint">«تلقائي» يتبع إعداد الجهاز. وكل مستخدم يقدر يغيّره لجهازه من أسفل القائمة الجانبية.</p></div>
 <div class="ss-actions"><button class="btn primary" type="button" id="bSave">حفظ الهوية والمظهر</button><span class="ss-status" id="bStatus"></span></div>`;
     const preview = () => Brand.preview({ logo: st.logo ?? st.logoNow, theme: st.theme, theme_auto: st.auto ? JSON.stringify(st.auto) : "" });
     const repaintSw = () => { $("#bSw").innerHTML = swatches(); };
@@ -188,13 +257,6 @@
       b.disabled = false; say("ssStatus", "", "الرسالة في الطابور ولم تُرسل بعد. تحقق بعد قليل.");
     };
   }
-
-  const fill = views.users.fill;
-  views.users.fill = function(){
-    fill.apply(this, arguments);
-    if (S.isAdmin) { paintBrand(); paintWa(); }
-    else document.querySelectorAll(".sys-panel").forEach(p => p.remove());
-  };
 
   /* قراءة بيانات الفاتورة من رمزها الضريبي */
   const inv = document.createElement("script"); inv.src = "invoice.js"; document.body.appendChild(inv);

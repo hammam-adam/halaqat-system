@@ -404,12 +404,13 @@ ${addForm}${actions}${canEdit ? `<p class="c-sub">${fresh ? "«تصفية جزئ
   views.users.fill = function(){
     const me = S.phone, order = { admin: 0, accountant: 1, staff: 2, custodian: 3 };
     $("#memberList").innerHTML = !S.members.length ? empty(ICON.users, "لا يوجد مستخدمون", "أضف أرقام المحاسب والمشرفين وأصحاب العهد.") :
-`<div class="tbl"><table class="dt"><thead><tr><th>الاسم</th><th>الجوال</th><th>الصلاحية</th><th class="n">رصيد الصلاحية</th><th></th></tr></thead><tbody>
+`<div class="tbl"><table class="dt"><thead><tr><th>الاسم</th><th>الجوال</th><th>الصلاحية</th><th class="n">رصيد الصلاحية</th><th>كلمة المرور</th><th></th></tr></thead><tbody>
 ${S.members.slice().sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9) || (a.name || "").localeCompare(b.name || "", "ar")).map(m => `<tr class="click" data-edit-member="${esc(m.phone)}" tabindex="0">
 <td class="main"><div class="who"><span class="avatar">${esc(initial(m.name || "؟"))}</span><div class="title">${esc(m.name || "بدون اسم")}${m.phone === me ? ` <span class="tag">أنت</span>` : ""}</div></div></td>
 <td data-label="الجوال" class="num" dir="ltr" style="text-align:right">${esc(showPhone(m.phone))}</td>
 <td data-label="الصلاحية"><span class="chip ${ROLE_CHIP[m.role] || "mute"}">${ROLE_LABEL[m.role] || m.role}</span></td>
 <td data-label="رصيد الصلاحية" class="n">${m.role === "accountant" ? money(m.budget) : `<span class="sub">—</span>`}</td>
+<td data-label="كلمة المرور">${m.init_password ? `<span class="pw-init" title="وضعها المدير، وتختفي إذا غيّرها المستخدم"><code>${esc(m.init_password)}</code></span>` : m.has_password ? `<span class="chip good">خاصة بالمستخدم</span>` : `<span class="sub">لا توجد</span>`}</td>
 <td data-label="" class="n">${m.phone === me ? "" : `<button class="btn sm danger" type="button" data-del-member="${esc(m.phone)}">إزالة</button>`}</td></tr>`).join("")}
 </tbody></table></div>`;
   };
@@ -427,20 +428,23 @@ ${S.members.slice().sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9) |
 <div class="field"><label for="mPhone">رقم الجوال (واتساب)</label><input type="tel" id="mPhone" dir="ltr" style="text-align:right" placeholder="05XXXXXXXX" value="${m ? esc(showPhone(m.phone)) : ""}"${m ? " disabled" : ""}></div>
 <div class="field wide"><label for="mRole">الصلاحية</label><select id="mRole">${ROLE_OPTS.map(([k, t]) => `<option value="${k}"${(m?.role || "staff") === k ? " selected" : ""}>${t}</option>`).join("")}</select></div>
 <div class="field" id="mBudgetW"><label for="mBudget">${m ? "رصيد الصلاحية المتاح (ر.س)" : "مبلغ الصلاحية (ر.س)"}</label><input type="number" id="mBudget" min="0" step="0.01" inputmode="decimal" value="${m ? +m.budget || 0 : ""}" placeholder="مثال: 10000"></div>
-</div><p class="c-sub" id="mBudgetHint">ينقص الرصيد مع كل عهدة يصرفها أو سند صرف يسجّله، ويعود إليه ما يُرجَع من العهد أو سند يُلغى. زِده متى ما أردت.</p>
+<div class="field wide"><label for="mPw">${m ? "كلمة مرور جديدة (اختياري)" : "كلمة المرور الأولى (اختياري)"}</label><div class="pw-wrap"><input type="text" id="mPw" dir="ltr" autocomplete="off" minlength="6" placeholder="${m ? "اتركها فارغة لإبقاء كلمة المرور الحالية" : "6 أحرف على الأقل"}"><button type="button" class="btn sm" id="mPwGen">توليد</button></div></div>
+</div><p class="c-sub">${m?.phone === S.phone ? "كلمة مرورك أنت تُخفى عن الجميع." : "تظهر لك في جدول المستخدمين لين يغيّرها المستخدم من الإعدادات. ويقدر يدخل برمز واتساب في أي وقت."}</p><p class="c-sub" id="mBudgetHint">ينقص الرصيد مع كل عهدة يصرفها أو سند صرف يسجّله، ويعود إليه ما يُرجَع من العهد أو سند يُلغى. زِده متى ما أردت.</p>
 <p class="err" id="mErr" hidden></p></div>
 <footer><button class="btn primary" type="submit">${m ? "حفظ" : "إضافة"}</button><button class="btn" type="button" data-close>إلغاء</button></footer></form>`, sheet => {
       const sync = () => { const a = $("#mRole", sheet).value === "accountant"; $("#mBudgetW", sheet).hidden = $("#mBudgetHint", sheet).hidden = !a; };
       $("#mRole", sheet).onchange = sync; sync();
+      $("#mPwGen", sheet).onclick = () => { const a = "abcdefghjkmnpqrstuvwxyz23456789", r = crypto.getRandomValues(new Uint32Array(8)); $("#mPw", sheet).value = [...r].map(x => a[x % a.length]).join(""); };
       $("#mForm", sheet).onsubmit = async e => { e.preventDefault(); const er = $("#mErr", sheet);
-        const args = { p_token: token(), p_name: $("#mName", sheet).value.trim(), p_role: $("#mRole", sheet).value, p_budget: parseFloat($("#mBudget", sheet).value) || 0 };
+        const args = { p_token: token(), p_name: $("#mName", sheet).value.trim(), p_role: $("#mRole", sheet).value, p_budget: parseFloat($("#mBudget", sheet).value) || 0, p_password: $("#mPw", sheet).value.trim() || null };
+        if (args.p_password && args.p_password.length < 6) { er.textContent = "كلمة المرور 6 أحرف على الأقل."; er.hidden = false; return; }
         const r = m ? await rpc("member_update", { ...args, p_phone: m.phone }) : await rpc("member_add", { ...args, p_phone: $("#mPhone", sheet).value });
-        if (r?.error) { er.textContent = r.error === "exists" ? "هذا الرقم مسجّل من قبل." : r.error === "bad_phone" ? "اكتب رقم جوال سعودي صحيح يبدأ بـ 05." : r.error === "self" ? "لا يمكنك تغيير صلاحيتك أنت." : "تعذّر الحفظ. أعد المحاولة."; er.hidden = false; return; }
-        toast(m ? "حُفظت التعديلات" : "أُضيف المستخدم. يقدر يدخل الآن برقمه."); closeModal(); loadMembers(); load(); };
+        if (r?.error) { er.textContent = r.error === "exists" ? "هذا الرقم مسجّل من قبل." : r.error === "bad_phone" ? "اكتب رقم جوال سعودي صحيح يبدأ بـ 05." : r.error === "self" ? "لا يمكنك تغيير صلاحيتك أنت." : r.error === "bad_password" ? "كلمة المرور من 6 إلى 64 حرفًا." : "تعذّر الحفظ. أعد المحاولة."; er.hidden = false; return; }
+        toast(m ? "حُفظت التعديلات" : args.p_password ? "أُضيف المستخدم. يدخل برقمه وكلمة المرور، أو برمز واتساب." : "أُضيف المستخدم. يقدر يدخل الآن برقمه."); closeModal(); loadMembers(); load(); };
     });
   };
   document.addEventListener("click", e => {
-    if (S.view !== "users" || e.target.closest("[data-del-member]")) return;
+    if ((S.view !== "users" && S.view !== "settings") || e.target.closest("[data-del-member]")) return;
     const r = e.target.closest("[data-edit-member]"); if (r) openMember(r.dataset.editMember);
   });
 

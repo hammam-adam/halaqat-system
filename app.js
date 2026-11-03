@@ -51,6 +51,12 @@ html.booting .app{visibility:hidden}
 .otp-boxes input:focus{background:var(--surface);border-color:var(--brand)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 14%,transparent)!important}
 .otp-boxes input.filled{background:var(--surface);border-color:var(--line-strong)}
 .otp-boxes.bad input{border-color:var(--bad);animation:shake .3s}
+
+.auth-method{display:flex;width:100%;margin-bottom:4px}.auth-method button{flex:1;justify-content:center;display:inline-flex;align-items:center;gap:6px}
+.auth-method button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
+.auth-method svg.i{width:16px;height:16px}
+.pw-wrap{display:flex;gap:6px;align-items:center}.pw-wrap input{flex:1;min-width:0}
+#pwIn{box-sizing:border-box;padding:12px 14px;border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);color:var(--fg);font:inherit;font-size:16px;min-height:52px}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .auth-box .hint{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:#eef7f1;border:1px solid #d3ebdc;color:#2f5b40;font-size:13px;line-height:1.7}
 .auth-box .hint svg{color:#1f9d57;margin-top:3px;flex:none}
@@ -108,8 +114,6 @@ h1,h2,h3,h4{letter-spacing:0}
 @media (max-width:980px){
   .nav{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;gap:0;margin:0;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));background:var(--side);border-top:1px solid rgba(243,233,218,.08);overflow-x:auto}
   .nav button{flex:1 1 0;min-width:42px;flex-direction:column;justify-content:center;gap:3px;padding:7px 2px;font-size:10.5px;line-height:1.25;border-radius:10px;text-align:center;white-space:normal}
-  .is-cust .nav{display:none}
-  .is-cust .work-inner{padding-bottom:40px}
   .nav button svg.i{width:21px;height:21px}
   .nav button .badge{position:absolute;top:3px;inset-inline-start:calc(50% + 4px);margin:0;min-width:18px;padding:0 5px;font-size:10.5px;line-height:17px}
   .side{padding-bottom:12px}
@@ -136,12 +140,13 @@ h1,h2,h3,h4{letter-spacing:0}
     ${CFG.est ? `<p class="est">${CFG.est}</p>` : ""}</aside>
   <main class="auth-main"><div class="auth-box">
     <form id="authPhone" novalidate>
-      ${steps(1)}
-      <div><h2>أهلًا بك</h2><p class="lead">سجّل دخولك برقم جوالك المسجّل في النظام، ونرسل لك رمز الدخول على واتساب.</p></div>
-      <div class="field"><label for="phoneIn">رقم الجوال</label><div class="phone-field"><span>+966</span><input id="phoneIn" type="tel" inputmode="numeric" placeholder="5X XXX XXXX" autocomplete="tel-national"></div></div>
+      <div class="seg auth-method" role="group" aria-label="طريقة الدخول"><button type="button" data-auth-method="pw" aria-pressed="true">كلمة المرور</button><button type="button" data-auth-method="wa" aria-pressed="false">${WA}رمز واتساب</button></div>
+      <div><h2>أهلًا بك</h2><p class="lead" id="authLead">سجّل دخولك برقم جوالك المسجّل في النظام وكلمة المرور.</p></div>
+      <div class="field"><label for="phoneIn">رقم الجوال</label><div class="phone-field"><span>+966</span><input id="phoneIn" type="tel" inputmode="numeric" placeholder="5X XXX XXXX" autocomplete="username"></div></div>
+      <div class="field" id="pwField"><label for="pwIn">كلمة المرور</label><div class="pw-wrap"><input id="pwIn" type="password" autocomplete="current-password" dir="ltr"><button type="button" class="btn ghost sm" id="pwEye" aria-label="إظهار كلمة المرور">إظهار</button></div></div>
       <p class="err" id="authErr" hidden></p>
-      <button class="btn wa" type="submit">${WA}أرسل رمز الدخول</button>
-      <div class="hint">${WA}<span>يصلك الرمز من رقم الحلقات على واتساب، وهو صالح لمدة 5 دقائق.</span></div>
+      <button class="btn primary" type="submit" id="authGo">دخول</button>
+      <div class="hint" id="authHint"><span>نسيت كلمة المرور؟ اختر «رمز واتساب» وادخل بالرمز، ثم غيّرها من الإعدادات.</span></div>
     </form>
     <form id="authCode" hidden novalidate>
       ${steps(2)}
@@ -197,6 +202,25 @@ h1,h2,h3,h4{letter-spacing:0}
   phoneIn.addEventListener("input", () => { phoneIn.value = fmtPhone(phoneIn.value); });
   try { const last = localStorage.getItem("halaqat.lastPhone"); if (last) phoneIn.value = fmtPhone(last); } catch (e) {}
 
+  /* sign-in method: fixed password or WhatsApp code; the last choice is remembered */
+  let authMethod = "pw";
+  try { authMethod = localStorage.getItem("halaqat.authMethod") || "pw"; } catch (e) {}
+  const setMethod = m => {
+    authMethod = m; try { localStorage.setItem("halaqat.authMethod", m); } catch (e) {}
+    document.querySelectorAll("[data-auth-method]").forEach(b => b.setAttribute("aria-pressed", b.dataset.authMethod === m));
+    const pw = m === "pw";
+    document.getElementById("pwField").hidden = !pw;
+    document.getElementById("authErr").hidden = true;
+    document.getElementById("authLead").textContent = pw ? "سجّل دخولك برقم جوالك المسجّل في النظام وكلمة المرور." : "سجّل دخولك برقم جوالك المسجّل في النظام، ونرسل لك رمز الدخول على واتساب.";
+    const go = document.getElementById("authGo");
+    go.className = "btn " + (pw ? "primary" : "wa"); go.innerHTML = pw ? "دخول" : WA + "أرسل رمز الدخول";
+    document.getElementById("authHint").innerHTML = pw ? "<span>نسيت كلمة المرور؟ اختر «رمز واتساب» وادخل بالرمز، ثم غيّرها من الإعدادات.</span>" : WA + "<span>يصلك الرمز من رقم المجمع على واتساب، وهو صالح لمدة 5 دقائق.</span>";
+  };
+  window.__authMethod = () => authMethod;
+  document.querySelectorAll("[data-auth-method]").forEach(b => b.onclick = () => setMethod(b.dataset.authMethod));
+  document.getElementById("pwEye").onclick = () => { const i = document.getElementById("pwIn"), show = i.type === "password"; i.type = show ? "text" : "password"; document.getElementById("pwEye").textContent = show ? "إخفاء" : "إظهار"; };
+  setMethod(authMethod);
+
   const s = document.createElement("script");
   s.src = "core.js";
   s.onload = () => { const c = document.createElement("script"); c.src = "custody.js"; c.onload = () => { const x = document.createElement("script"); x.src = "extras.js"; x.onload = () => { const y = document.createElement("script"); y.src = "settings.js"; y.onload = start; document.body.appendChild(y); }; document.body.appendChild(x); }; document.body.appendChild(c); };
@@ -215,7 +239,11 @@ h1,h2,h3,h4{letter-spacing:0}
       wrong_code: "الرمز غير صحيح. تأكد منه وأعد المحاولة.",
       locked: "محاولات كثيرة. اطلب رمزًا جديدًا.",
       forbidden: "ليست لديك صلاحية لهذا الإجراء.",
-      network: "تعذّر الاتصال. تحقق من الإنترنت وأعد المحاولة."
+      network: "تعذّر الاتصال. تحقق من الإنترنت وأعد المحاولة.",
+      no_password: "ما فيه كلمة مرور لهذا الرقم بعد. ادخل برمز واتساب، أو اطلب من مدير النظام كلمة مرور.",
+      wrong_password: "كلمة المرور غير صحيحة.",
+      pw_locked: "محاولات كثيرة. انتظر 15 دقيقة، أو ادخل برمز واتساب.",
+      bad_password: "كلمة المرور من 6 إلى 64 حرفًا."
     };
     const rpc = async (fn, args) => {
       try { const { data, error } = await SB.rpc(fn, args); return error ? { error: "network" } : data; }
@@ -269,7 +297,7 @@ h1,h2,h3,h4{letter-spacing:0}
     window.loadMembers = async function(){
       const r = await rpc("members_list", { p_token: token });
       S.members = r?.members || [];
-      if (S.view === "users" && $("#memberList")) views.users.fill();
+      if ($("#memberList")) views.users.fill();
     };
     views.users.bind = function(){
       $("#addMember").onclick = () => openMember();
@@ -287,6 +315,15 @@ h1,h2,h3,h4{letter-spacing:0}
       const phone = normPhone($("#phoneIn").value);
       if (!phone) return showErr(err, "bad_phone");
       const btn = $("#authPhone button[type=submit]"); btn.disabled = true;
+      if (window.__authMethod() === "pw") {
+        const pw = $("#pwIn").value;
+        if (!pw) { btn.disabled = false; err.textContent = "اكتب كلمة المرور."; err.hidden = false; return; }
+        const r = await rpc("login_password", { p_phone: phone, p_password: pw });
+        btn.disabled = false;
+        if (r?.error) return showErr(err, r.error);
+        storeSet("halaqat.lastPhone", phone); $("#pwIn").value = "";
+        token = r.token; storeSet(TK, token); return enter2(r);
+      }
       const r = await rpc("login_request", { p_phone: phone });
       btn.disabled = false;
       if (r?.error) return showErr(err, r.error);
