@@ -8,3 +8,5 @@ window.APP_CONFIG = {
   supabaseKey: "sb_publishable_Xglo4NXVwd7kgsfbL57-1w_DnhS-mpx",
   dbSchema: "public"
 };
+// الهوية والألوان (الاسم والشعار والثيم) تُحمَّل قبل باقي الملفات
+document.write('<script src="brand.js"><\/script>');
