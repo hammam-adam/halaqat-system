@@ -1,0 +1,16 @@
+# نظام إدارة الحلقات
+
+نسخة عامة من نظام إدارة حلقات تحفيظ القرآن الكريم. كل مسجد يأخذ نسخته الخاصة: موقع مستقل وقاعدة بيانات مستقلة.
+
+## الملفات
+- `index.html`, `app.js`, `core.js`, `custody.js`, `extras.js`: واجهة الموقع (ملفات ثابتة، بدون بناء).
+- `config.js`: إعدادات النسخة (اسم المجمع، رابط Supabase ومفتاحه العام).
+- `supabase/schema.sql`: قاعدة البيانات كاملة (الجداول والدوال وطابور واتساب).
+
+## تشغيل نسخة جديدة
+1. أنشئ مشروع Supabase جديد وشغّل `supabase/schema.sql` في SQL Editor.
+2. أضف مفتاح WasenderAPI في Vault باسم `wasender_api_key`:
+   `select vault.create_secret('<KEY>', 'wasender_api_key');`
+3. عدّل `app_config` (اسم المجمع ورابط الموقع)، وأضف أول مدير:
+   `insert into members(phone,name,role) values ('9665XXXXXXXX','الاسم','admin');`
+4. ضع رابط المشروع ومفتاحه العام في `config.js`، وانشر المجلد على Vercel.
