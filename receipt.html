@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>إقرار استلام مكافأة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f4f1;--surface:#fff;--surface-2:#f8f7f4;--line:#ebe7e0;--line-strong:#d8d1c5;--fg:#1c1712;--muted:#6e665b;--brand:#4a2e1a;--brand-ink:#fff;--side:#2a1b10;--side-fg:#f3e9da;--good:#18794e;--good-bg:#e8f3ec;--bad:#b4372c;--bad-bg:#fbe9e6;--warn:#8a5d00;--warn-bg:#faf0d7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 "IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;min-height:100vh;display:grid;place-items:start center;padding:28px 16px 40px}
+.card{width:100%;max-width:460px;background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06)}
+.head{background:var(--side);color:var(--side-fg);padding:22px 22px 18px;display:flex;align-items:center;gap:14px}
+.mark{width:46px;aspect-ratio:381/520;background:var(--side-fg);-webkit-mask:center/contain no-repeat;mask:center/contain no-repeat;flex:none}
+.head h1{margin:0;font-size:18px;line-height:1.4}
+.head p{margin:2px 0 0;font-size:12.5px;opacity:.75}
+.body{padding:22px;display:grid;gap:16px}
+h2{margin:0;font-size:19px}
+.lead{margin:0;color:var(--muted);font-size:14px}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:10px 16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2)}
+dt{color:var(--muted);font-size:13px}
+dd{margin:0;font-weight:600}
+dd.big{font-size:22px;color:var(--brand)}
+label{display:grid;gap:6px;font-size:13.5px;font-weight:600}
+input[type=text]{width:100%;padding:12px 14px;border:1px solid var(--line-strong);border-radius:12px;font:inherit;background:var(--surface);color:var(--fg);min-height:48px}
+.check{display:flex;gap:10px;align-items:flex-start;font-weight:500;line-height:1.7}
+.check input{margin-top:5px;width:18px;height:18px;accent-color:var(--brand);flex:none}
+button{font:inherit;font-weight:600;border:0;border-radius:12px;padding:13px 16px;background:var(--brand);color:var(--brand-ink);cursor:pointer;min-height:50px}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.ghost{background:transparent;color:var(--brand);border:1px solid var(--line-strong);min-height:44px}
+.err{margin:0;color:var(--bad);background:var(--bad-bg);padding:10px 12px;border-radius:10px;font-size:13.5px}
+.done{display:grid;justify-items:center;text-align:center;gap:6px;padding:18px;border-radius:14px;background:var(--good-bg);color:var(--good)}
+.done .tick{width:54px;height:54px;border-radius:50%;background:var(--good);color:#fff;display:grid;place-items:center;font-size:28px;line-height:1}
+.done b{font-size:17px}.done span{font-size:13px}
+.warn{background:var(--warn-bg);color:var(--warn);padding:12px 14px;border-radius:12px;font-size:14px}
+.foot{padding:0 22px 20px;color:var(--muted);font-size:12px;text-align:center}
+@media print{body{background:#fff;padding:0}.card{box-shadow:none;border:0}button{display:none}}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="head"><div class="mark" aria-hidden="true"></div><div><h1 id="org">…</h1><p>إقرار استلام مكافأة</p></div></div>
+  <div class="body" id="body"><p class="lead">جارٍ التحميل…</p></div>
+  <p class="foot">هذا الإقرار يُحفظ في سجلات المجمع بمثابة سند استلام.</p>
+</main>
+<script src="config.js"></script>
+<script>
+(function(){
+  const CFG = window.APP_CONFIG, r = new URLSearchParams(location.search).get("r") || "";
+  const $ = s => document.querySelector(s), body = $("#body");
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  const monthLabel = ym => { if (!ym) return ""; const [y, m] = ym.split("-"); return `${MONTHS[+m - 1]} ${y}`; };
+  const money = n => (+n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " ر.س";
+  const day = d => { try { return new Date(d).toLocaleDateString("ar-SA-u-ca-islamic-umalqura-nu-latn", { day: "numeric", month: "long", year: "numeric" }); } catch (e) { return d; } };
+  const when = d => { try { return day(d) + " · " + new Date(d).toLocaleTimeString("ar-SA-u-nu-latn", { hour: "numeric", minute: "2-digit" }); } catch (e) { return d; } };
+  const METHODS = { cash: "نقدًا", transfer: "تحويل بنكي", check: "شيك" };
+  const rpc = async (fn, args) => {
+    try { const res = await fetch(CFG.supabaseUrl + "/rest/v1/rpc/" + fn, { method: "POST",
+      headers: { apikey: CFG.supabaseKey, Authorization: "Bearer " + CFG.supabaseKey, "Content-Type": "application/json" }, body: JSON.stringify(args) });
+      return res.ok ? await res.json() : { error: "network" }; } catch (e) { return { error: "network" }; }
+  };
+  function render(d){
+    $("#org").textContent = d.org_name || CFG.orgName;
+    document.title = "إقرار استلام مكافأة · " + (d.org_name || CFG.orgName);
+    const details = `<dl>
+<dt>المستلم</dt><dd>${esc(d.teacher_name)}</dd>
+<dt>المبلغ</dt><dd class="big">${money(d.amount)}</dd>
+<dt>وذلك عن</dt><dd>مكافأة${d.month ? " شهر " + esc(monthLabel(d.month)) : ""}</dd>
+<dt>رقم السند</dt><dd dir="ltr" style="text-align:right">${esc(d.voucher_no)}</dd>
+${d.paid_on ? `<dt>تاريخ الصرف</dt><dd>${esc(day(d.paid_on))}</dd>` : ""}
+${METHODS[d.method] ? `<dt>طريقة الصرف</dt><dd>${METHODS[d.method]}</dd>` : ""}
+</dl>`;
+    if (d.confirmed_at) {
+      body.innerHTML = `<div class="done"><div class="tick">✓</div><b>تم تأكيد الاستلام</b><span>أقرّ ${esc(d.confirmed_name)} بالاستلام في ${esc(when(d.confirmed_at))}</span></div>${details}<button class="ghost" type="button" onclick="print()">طباعة أو حفظ PDF</button>`;
+      return;
+    }
+    if (d.void) { body.innerHTML = `<div class="warn">أُلغي هذا السند، فلا حاجة لتأكيد استلامه. تواصل مع إدارة المجمع إذا عندك سؤال.</div>${details}`; return; }
+    body.innerHTML = `<div><h2>السلام عليكم ${esc(d.teacher_name)}</h2><p class="lead">صُرفت لك المكافأة التالية. راجع البيانات ثم أكّد استلامها.</p></div>${details}
+<form id="f" novalidate style="display:grid;gap:14px">
+<label>اسمك كما تريده في الإقرار<input type="text" id="nm" value="${esc(d.teacher_name)}" autocomplete="name"></label>
+<label class="check"><input type="checkbox" id="ok"><span>أقرّ باستلامي مبلغ <b>${money(d.amount)}</b> كاملًا من ${esc(d.org_name || CFG.orgName)}.</span></label>
+<p class="err" id="er" hidden></p>
+<button type="submit" id="go" disabled>تأكيد الاستلام</button>
+</form>`;
+    $("#ok").onchange = () => { $("#go").disabled = !$("#ok").checked; };
+    $("#f").onsubmit = async e => {
+      e.preventDefault();
+      const name = $("#nm").value.trim(), er = $("#er"); er.hidden = true;
+      if (name.length < 3) { er.textContent = "اكتب اسمك الكامل."; er.hidden = false; return; }
+      $("#go").disabled = true;
+      const x = await rpc("receipt_confirm", { p_r: r, p_name: name });
+      if (x?.ok) return render(x);
+      $("#go").disabled = false;
+      er.textContent = x?.error === "bad_name" ? "اكتب اسمك الكامل." : "تعذّر الحفظ. تحقق من الإنترنت وأعد المحاولة."; er.hidden = false;
+    };
+  }
+  (async () => {
+    if (!/^[0-9a-f]{20,64}$/.test(r)) { body.innerHTML = `<div class="warn">الرابط غير صحيح. افتح الرابط كما وصلك في رسالة واتساب.</div>`; $("#org").textContent = CFG.orgName; return; }
+    const d = await rpc("receipt_get", { p_r: r });
+    if (d?.ok) return render(d);
+    $("#org").textContent = CFG.orgName;
+    body.innerHTML = `<div class="warn">${d?.error === "not_found" ? "هذا الرابط غير موجود أو انتهى." : "تعذّر التحميل. تحقق من الإنترنت وأعد المحاولة."}</div>`;
+  })();
+})();
+</script>
+</body>
+</html>

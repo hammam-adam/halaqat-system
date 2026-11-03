@@ -223,7 +223,7 @@ h1,h2,h3,h4{letter-spacing:0}
 
   const s = document.createElement("script");
   s.src = "core.js";
-  s.onload = () => { const c = document.createElement("script"); c.src = "custody.js"; c.onload = () => { const x = document.createElement("script"); x.src = "extras.js"; x.onload = () => { const y = document.createElement("script"); y.src = "settings.js"; y.onload = start; document.body.appendChild(y); }; document.body.appendChild(x); }; document.body.appendChild(c); };
+  s.onload = () => { const c = document.createElement("script"); c.src = "custody.js"; c.onload = () => { const x = document.createElement("script"); x.src = "extras.js"; x.onload = () => { const y = document.createElement("script"); y.src = "settings.js"; y.onload = () => { const z = document.createElement("script"); z.src = "reward.js"; z.onload = start; z.onerror = start; document.body.appendChild(z); }; document.body.appendChild(y); }; document.body.appendChild(x); }; document.body.appendChild(c); };
   document.body.appendChild(s);
 
   function start(){
