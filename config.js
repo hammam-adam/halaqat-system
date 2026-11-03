@@ -4,7 +4,7 @@ window.APP_CONFIG = {
   tagline: "لتحفيظ القرآن الكريم",          // السطر تحت الاسم (مثلاً: لتحفيظ القرآن الكريم · حي ...)
   est: "",                                   // سنة التأسيس، مثل: تأسس عام 1426هـ (اتركه فارغًا لإخفائه)
   siteUrl: location.origin,
-  supabaseUrl: "__SUPABASE_URL__",
-  supabaseKey: "__SUPABASE_KEY__",
+  supabaseUrl: "https://vtpjmvrebcheupoydclg.supabase.co",
+  supabaseKey: "sb_publishable_Xglo4NXVwd7kgsfbL57-1w_DnhS-mpx",
   dbSchema: "public"
 };
