@@ -3,6 +3,7 @@ document.documentElement.dir = "rtl";
 const INCOME_CATS = ["رسوم دراسية","تبرعات","كفالات طلاب","دعم جهات ومؤسسات","أخرى"];
 const EXPENSE_CATS = ["رواتب ومكافآت المعلمين","جوائز وحوافز الطلاب","مصاحف وكتب","إيجار ومرافق","أنشطة ورحلات","ضيافة","قرطاسية ومستلزمات","أخرى"];
 const FEE_CAT = "رسوم دراسية";
+const catsOf = (base, list) => [...new Set([...base, ...list.map(t=>t.category).filter(Boolean)])];
 const REWARD_CAT = "رواتب ومكافآت المعلمين";
 const DEFAULT_ORG = window.APP_CONFIG.orgName;
 const METHODS = {cash:"نقدًا", transfer:"تحويل بنكي", pos:"شبكة (مدى)"};
@@ -121,7 +122,7 @@ return `<tr class="click${t.void?" void":""}" data-tx="${esc(t.id)}" tabindex="0
 <td data-label="رقم السند" class="hide-m"><span class="vno">${vno(t)}</span></td>
 <td class="main"><div class="who"><span class="ico ${isInc?"inc":"exp"}">${isInc?ICON.inc:ICON.exp}</span><div style="min-width:0"><div class="title">${esc(title)}</div>${sub?`<span class="sub">${esc(sub)}</span>`:`<span class="sub vno">${vno(t)}</span>`}</div></div></td>
 <td data-label="التاريخ" class="date num">${esc(gDate(t.date))}<small>${esc(hijri(t.date))} هـ</small></td>
-<td data-label="البند">${catTag(t.category)}</td>
+<td data-label="البند">${catTag(t.category)}${t.catOther?`<div class="sub">${esc(t.catOther)}</div>`:""}</td>
 <td data-label="الحلقة" class="hide-m">${esc(halaqaName(t.halaqaId))||`<span class="sub">عام</span>`}</td>
 <td data-label="الدفع" class="hide-m">${esc(METHODS[t.method]||"")}</td>
 <td data-label="المبلغ" class="n"><span class="amount ${isInc?"inc":"exp"}">${mh(t.amount)}</span>${t.void?` <span class="chip bad">ملغى</span>`:""}</td></tr>`;
@@ -156,7 +157,7 @@ kpi({label:`إيرادات ${monthName(m)}`, value:mh(sum(mI)), icon:ICON.inc, t
 kpi({label:`مصروفات ${monthName(m)}`, value:mh(sum(mE)), icon:ICON.exp, tone:"var(--exp)", note:`${mE.length} سند صرف`}) +
 kpi({label:`مستحقات ${monthName(m)} المتبقية`, value:mh(feeDue+tcDue), icon:ICON.clock, tone:"var(--warnc)", note:`رسوم لم تُحصّل ${money(feeDue)}<br>مكافآت لم تُصرف ${money(tcDue)}`});
 drawChart6($("#chart6"));
-const cats = EXPENSE_CATS.map(c=>({c, v:sum(mE.filter(t=>t.category===c))})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+const cats = catsOf(EXPENSE_CATS, mE).map(c=>({c, v:sum(mE.filter(t=>t.category===c))})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
 const max = Math.max(1,...cats.map(x=>x.v)), tot=sum(cats,x=>x.v);
 $("#expCats").innerHTML = cats.length ? `<div class="bars">${cats.map(x=>`<div class="bar-row"><div class="meta"><span>${esc(x.c)}</span><span><span class="num">${money(x.v)}</span> <span class="sub">${Math.round(x.v/tot*100)}%</span></span></div><div class="bar-track"><div class="bar-fill" style="width:${(x.v/max*100).toFixed(1)}%"></div></div></div>`).join("")}</div>`
 : `<div class="empty" style="padding:24px 0"><span>لم تُسجَّل مصروفات هذا الشهر بعد.</span></div>`;
@@ -381,8 +382,8 @@ ${pageHead("التقارير المالية","قائمة الإيرادات وا
 fill(){
 const T = periodTx(), label = S.reports.mode==="month" ? monthLabel(S.reports.month) : `سنة ${S.reports.year}`;
 $("#plLabel").textContent = `${label} · ${T.length} سند (الملغاة غير محتسبة)`;
-const incRows = INCOME_CATS.map(c=>({c,v:sum(T.filter(t=>t.type==="income"&&t.category===c))})).filter(x=>x.v);
-const expRows = EXPENSE_CATS.map(c=>({c,v:sum(T.filter(t=>t.type==="expense"&&t.category===c))})).filter(x=>x.v);
+const incRows = catsOf(INCOME_CATS, T.filter(t=>t.type==="income")).map(c=>({c,v:sum(T.filter(t=>t.type==="income"&&t.category===c))})).filter(x=>x.v);
+const expRows = catsOf(EXPENSE_CATS, T.filter(t=>t.type==="expense")).map(c=>({c,v:sum(T.filter(t=>t.type==="expense"&&t.category===c))})).filter(x=>x.v);
 const ti=sum(incRows,x=>x.v), te=sum(expRows,x=>x.v);
 $("#rKpis").innerHTML =
 kpi({label:ti-te>=0?"الفائض":"العجز", value:mh(Math.abs(ti-te)), icon:ICON.wallet, lead:true, note:label}) +
@@ -419,7 +420,7 @@ function exportCsv(){
 const T = periodTx().sort((a,b)=>(a.date||"").localeCompare(b.date||"")||(a.no||0)-(b.no||0));
 const q = v => `"${String(v??"").replace(/"/g,'""')}"`;
 const head = ["رقم السند","النوع","التاريخ","التاريخ الهجري","البند","المبلغ","طريقة الدفع","الطرف","الطالب","المعلم","الحلقة","عن شهر","ملاحظات"];
-const lines = [head.map(q).join(",")].concat(T.map(t=>[vno(t),t.type==="income"?"قبض":"صرف",t.date,hijri(t.date),t.category,t.amount,METHODS[t.method]||"",t.party,studentById(t.studentId)?.name||"",teacherById(t.teacherId)?.name||"",halaqaName(t.halaqaId),t.feeMonth||t.rewardMonth||"",t.note].map(q).join(",")));
+const lines = [head.map(q).join(",")].concat(T.map(t=>[vno(t),t.type==="income"?"قبض":"صرف",t.date,hijri(t.date),t.category+(t.catOther?": "+t.catOther:""),t.amount,METHODS[t.method]||"",t.party,studentById(t.studentId)?.name||"",teacherById(t.teacherId)?.name||"",halaqaName(t.halaqaId),t.feeMonth||t.rewardMonth||"",t.note].map(q).join(",")));
 const key = S.reports.mode==="month"?S.reports.month:S.reports.year;
 const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"})); a.download=`سندات-${key}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
@@ -497,13 +498,14 @@ return false;
 function openTx(type, preset={}, editing=null){
 const t = editing || {type, date:todayISO(), method:"cash", ...preset};
 const isInc = t.type==="income";
-const cats = isInc ? INCOME_CATS : EXPENSE_CATS;
+const cats = [...new Set([...(isInc ? INCOME_CATS : EXPENSE_CATS), ...(t.category ? [t.category] : [])])];
 const nextNo = editing ? editing.no : 1 + Math.max(0,...S.tx.filter(x=>x.type===t.type).map(x=>+x.no||0));
 openModal(`<form id="txForm" novalidate><header><span class="ico ${isInc?"inc":"exp"}">${isInc?ICON.inc:ICON.exp}</span><h3>${editing?"تعديل ":""}${isInc?"سند قبض":"سند صرف"} <span class="vno">${vno({type:t.type,no:nextNo})}</span></h3>${closeBtn}</header>
 <div class="content"><div class="form-grid">
 <div class="field"><label for="txAmount">المبلغ (ر.س)</label><input type="number" id="txAmount" min="0.01" step="0.01" inputmode="decimal" value="${t.amount??""}" required></div>
 <div class="field"><label for="txDate">التاريخ</label><input type="date" id="txDate" value="${esc(t.date)}" required><span class="sub" id="txHijri">${hijri(t.date)} هـ</span></div>
 <div class="field"><label for="txCat">البند</label><select id="txCat">${cats.map(c=>`<option${c===t.category?" selected":""}>${esc(c)}</option>`).join("")}</select></div>
+<div class="field" id="catOtherW"><label for="txCatOther">حدّد النوع</label><input type="text" id="txCatOther" value="${esc(t.catOther||"")}" placeholder="${isInc?"مثال: تبرع عيني":"مثال: صيانة مكيفات"}"></div>
 <div class="field"><label for="txMethod">طريقة الدفع</label><select id="txMethod">${Object.entries(METHODS).map(([k,v])=>`<option value="${k}"${k===t.method?" selected":""}>${v}</option>`).join("")}</select></div>
 ${isInc?"":`<div class="field" id="tcWrap"><label for="txTeacher">المعلم</label><select id="txTeacher"><option value="">— اختر المعلم —</option>${S.teachers.filter(x=>x.active!==false||x.id===t.teacherId).map(x=>`<option value="${esc(x.id)}"${x.id===t.teacherId?" selected":""}>${esc(x.name)}</option>`).join("")}</select></div>
 <div class="field" id="rmWrap"><label for="txRewardMonth">المكافأة عن شهر</label><input type="month" id="txRewardMonth" value="${esc(t.rewardMonth||thisMonth())}"></div>`}
@@ -519,7 +521,7 @@ const tcSel=$("#txTeacher",sheet), tcw=$("#tcWrap",sheet), rmw=$("#rmWrap",sheet
 const syncStudents = () => { if(!stSel) return; const cur = stSel.value || t.studentId || "";
 const list = S.students.filter(s=>(s.active!==false||s.id===cur) && (!hal.value||s.halaqaId===hal.value));
 stSel.innerHTML = `<option value="">— بدون طالب —</option>` + list.map(s=>`<option value="${esc(s.id)}"${s.id===cur?" selected":""}>${esc(s.name)}</option>`).join(""); };
-const syncCat = () => { if(fmw) fmw.hidden = cat.value!==FEE_CAT; if(tcw){ tcw.hidden = rmw.hidden = cat.value!==REWARD_CAT; } };
+const syncCat = () => { $("#catOtherW",sheet).hidden = cat.value!=="أخرى"; if(fmw) fmw.hidden = cat.value!==FEE_CAT; if(tcw){ tcw.hidden = rmw.hidden = cat.value!==REWARD_CAT; } };
 const suggestSt = () => { if(!stSel || editing) return; const s=studentById(stSel.value); if(!s) return;
 if(!party.value) party.value = s.guardian || s.name;
 if(s.halaqaId && !hal.value) hal.value=s.halaqaId;
@@ -543,11 +545,13 @@ const amount = Math.round(parseFloat(amt.value)*100)/100, date=$("#txDate",sheet
 const fail = (msg, el) => { err.textContent=msg; err.hidden=false; el?.focus(); };
 if(!(amount>0)) return fail("أدخل مبلغًا أكبر من صفر.", amt);
 if(!date) return fail("اختر تاريخ السند.");
+const catOther = cat.value==="أخرى" ? $("#txCatOther",sheet).value.trim() : "";
+if(cat.value==="أخرى" && !catOther) return fail("البند «أخرى»: اكتب نوعه في خانة «حدّد النوع».", $("#txCatOther",sheet));
 const studentId = stSel?.value || "";
 if(isInc && cat.value===FEE_CAT && !studentId) return fail("سند الرسوم الدراسية يحتاج اختيار الطالب، حتى تظهر حالة سداده في صفحة الرسوم.", stSel);
 const isReward = !isInc && cat.value===REWARD_CAT, teacherId = isReward ? (tcSel?.value||"") : "";
 if(isReward && !teacherId && !(editing && !editing.teacherId)) return fail("اختر المعلم حتى تظهر المكافأة في صفحة المعلمين.", tcSel);
-const body = { type:t.type, no:nextNo, amount, date, category:cat.value, method:$("#txMethod",sheet).value,
+const body = { type:t.type, no:nextNo, amount, date, category:cat.value, catOther, method:$("#txMethod",sheet).value,
 halaqaId:hal.value || studentById(studentId)?.halaqaId || "", studentId, teacherId,
 rewardMonth: isReward && teacherId ? $("#txRewardMonth",sheet).value : "",
 feeMonth: isInc&&cat.value===FEE_CAT ? $("#txFeeMonth",sheet).value : "",
@@ -574,7 +578,7 @@ openModal(`<header><h3>${isInc?"سند قبض":"سند صرف"} <span class="vno
 <dt>${isInc?"استلمنا من":"صرفنا إلى"}</dt><dd>${esc(t.party)||"—"}</dd>
 <dt>المبلغ</dt><dd class="big">${money(t.amount)}</dd>
 <dt>كتابةً</dt><dd class="words">${esc(tafqeet(+t.amount||0))}</dd>
-<dt>وذلك عن</dt><dd>${esc(t.category)}${forMonth?` · شهر ${monthLabel(forMonth)}`:""}${st?` · الطالب ${esc(st.name)}`:""}${tc?` · المعلم ${esc(tc.name)}`:""}</dd>
+<dt>وذلك عن</dt><dd>${esc(t.category)}${t.catOther?`: ${esc(t.catOther)}`:""}${forMonth?` · شهر ${monthLabel(forMonth)}`:""}${st?` · الطالب ${esc(st.name)}`:""}${tc?` · المعلم ${esc(tc.name)}`:""}</dd>
 ${t.halaqaId?`<dt>الحلقة</dt><dd>${esc(halaqaName(t.halaqaId))}</dd>`:""}
 <dt>طريقة الدفع</dt><dd>${esc(METHODS[t.method]||"")}</dd>
 ${t.note?`<dt>ملاحظات</dt><dd>${esc(t.note)}</dd>`:""}

@@ -26,7 +26,8 @@
 
   const COL = "receivables";
   const R = { list: [], sub: false, tab: "open", q: "" };
-  const KINDS = ["وعد بتبرع", "دعم جهة أو مؤسسة", "كفالة متأخرة", "سلفة أو قرض", "أخرى"];
+  const KINDS = window.RECV_KINDS = ["وعد بتبرع", "دعم جهة أو مؤسسة", "كفالة متأخرة", "سلفة أو قرض", "أخرى"];
+  window.__recv = R;
   const ICO = svg("M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 1.6 2.6 4.5 3.2 4.5 1.6 4.5 3.3-2 3-4.5 3-4.5-1.3-4.5-3");
   const paidOf = r => sum(live().filter(t => t.type === "income" && t.receivableId === r.id));
   const restOf = r => r.status === "waived" ? 0 : Math.max(0, (+r.amount || 0) - paidOf(r));
@@ -130,7 +131,7 @@ ${pageHead("المستحقات", "مبالغ للمجمع عند أشخاص أو
         const paid = paidOf(r), rest = restOf(r), pct = Math.min(100, Math.round(paid / (+r.amount || 1) * 100)), ph = normPhone(r.phone || "");
         const st = r.status === "waived" ? `<span class="chip mute">أُسقط الباقي</span>` : !rest ? `<span class="chip good">مسدد</span>` : isLate(r) ? `<span class="chip bad">متأخر</span>` : paid ? `<span class="chip info">مسدد جزئيًا</span>` : `<span class="chip warn">قائم</span>`;
         const msg = `السلام عليكم ${r.name || ""}\nنذكّركم بمبلغ ${money(rest)} المستحق لـ${org}${r.reason ? " عن " + r.reason : ""}.\nجزاكم الله خيرًا.`;
-        return `<div class="rv click" data-rv="${esc(r.id)}"><div><h4>${esc(r.name || "بدون اسم")} ${st}</h4><div class="meta"><span>${esc(r.kind || "")}${r.reason ? " · " + esc(r.reason) : ""}</span>${r.due ? `<span>الموعد ${esc(gDate(r.due))}</span>` : ""}${ph ? `<span dir="ltr">${esc(showPhone(ph))}</span>` : ""}</div></div>
+        return `<div class="rv click" data-rv="${esc(r.id)}"><div><h4>${esc(r.name || "بدون اسم")} ${st}</h4><div class="meta"><span>${esc(r.kind === "أخرى" && r.kindOther ? r.kindOther : r.kind || "")}${r.reason ? " · " + esc(r.reason) : ""}</span>${r.due ? `<span>الموعد ${esc(gDate(r.due))}</span>` : ""}${ph ? `<span dir="ltr">${esc(showPhone(ph))}</span>` : ""}</div></div>
 <div class="amt">${money(rest)}<span>${paid ? `من ${money(+r.amount || 0)}` : "المتبقي"}</span></div>
 ${paid && rest ? `<div class="bar"><i style="width:${pct}%"></i></div>` : ""}
 ${rest && mgr() ? `<div class="acts">${ph ? `<a class="btn sm" href="https://wa.me/${ph}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">تذكير على واتساب</a>` : ""}<button class="btn sm inc" type="button" data-rv-pay="${esc(r.id)}">استلام مبلغ</button></div>` : ""}</div>`; }).join("")}</div>`
@@ -151,14 +152,18 @@ ${rest && mgr() ? `<div class="acts">${ph ? `<a class="btn sm" href="https://wa.
 <div class="field"><label for="rvPhone">الجوال <span class="sub">(اختياري، للتذكير)</span></label><input type="tel" id="rvPhone" dir="ltr" style="text-align:right" value="${esc(r?.phone ? showPhone(r.phone) : "")}" placeholder="05XXXXXXXX"${ro ? " disabled" : ""}></div>
 <div class="field"><label for="rvAmount">المبلغ (ر.س)</label><input type="number" id="rvAmount" min="0.01" step="0.01" inputmode="decimal" value="${r ? +r.amount || "" : ""}"${ro ? " disabled" : ""}></div>
 <div class="field"><label for="rvDue">موعد السداد <span class="sub">(اختياري)</span></label><input type="date" id="rvDue" value="${esc(r?.due || "")}"${ro ? " disabled" : ""}></div>
-<div class="field"><label for="rvKind">النوع</label><select id="rvKind"${ro ? " disabled" : ""}>${KINDS.map(k => `<option${k === (r?.kind || KINDS[0]) ? " selected" : ""}>${k}</option>`).join("")}</select></div>
-<div class="field"><label for="rvCat">يُسجَّل عند الاستلام تحت بند</label><select id="rvCat"${ro ? " disabled" : ""}>${INCOME_CATS.map(c => `<option${c === (r?.category || "تبرعات") ? " selected" : ""}>${esc(c)}</option>`).join("")}</select></div>
+<div class="field"><label for="rvKind">النوع</label><select id="rvKind"${ro ? " disabled" : ""}>${[...new Set([...KINDS, ...(r?.kind ? [r.kind] : [])])].map(k => `<option${k === (r?.kind || KINDS[0]) ? " selected" : ""}>${esc(k)}</option>`).join("")}</select></div>
+<div class="field" id="rvKindOW"><label for="rvKindO">حدّد النوع</label><input type="text" id="rvKindO" value="${esc(r?.kindOther || "")}" placeholder="مثال: إيجار قاعة"${ro ? " disabled" : ""}></div>
+<div class="field"><label for="rvCat">يُسجَّل عند الاستلام تحت بند</label><select id="rvCat"${ro ? " disabled" : ""}>${[...new Set([...INCOME_CATS.filter(c => c !== FEE_CAT), ...(r?.category ? [r.category] : [])])].map(c => `<option${c === (r?.category || "تبرعات") ? " selected" : ""}>${esc(c)}</option>`).join("")}</select></div>
+<div class="field" id="rvCatOW"><label for="rvCatO">حدّد البند</label><input type="text" id="rvCatO" value="${esc(r?.catOther || "")}" placeholder="مثال: تبرع عيني"${ro ? " disabled" : ""}></div>
 <div class="field wide"><label for="rvReason">السبب أو البيان</label><textarea id="rvReason" rows="2" placeholder="مثال: تبرع لمسابقة رمضان"${ro ? " disabled" : ""}>${esc(r?.reason || "")}</textarea></div>
 </div>
 ${r ? `<p class="c-sub">استُلم ${money(paidOf(r))} من ${money(+r.amount || 0)}${r.status === "waived" ? "، وأُسقط الباقي" : ""}.</p>${pays.length ? `<div class="rv-pays">${pays.map(t => `<button type="button" data-open-tx="${esc(t.id)}"><span>سند قبض ${esc(vno(t))} · ${esc(gDate(t.date))}</span><b>${money(t.amount)}</b></button>`).join("")}</div>` : ""}` : ""}
 <p class="err" id="rvErr" hidden></p></div>
 <footer>${ro ? `<button class="btn" type="button" data-close>إغلاق</button>` : `<button class="btn primary" type="submit">${r ? "حفظ" : "إضافة"}</button>${r && isOpen(r) ? `<button class="btn inc" type="button" id="rvPayBtn">استلام مبلغ</button>` : ""}<span class="spacer"></span>${r ? (pays.length ? (isOpen(r) ? `<button class="btn danger" type="button" id="rvWaive">إسقاط الباقي</button>` : r.status === "waived" ? `<button class="btn" type="button" id="rvUnwaive">إعادة الباقي مستحقًا</button>` : "") : `<button class="btn danger" type="button" id="rvDel">حذف</button>`) : ""}`}</footer></form>`, sheet => {
       sheet.querySelectorAll("[data-open-tx]").forEach(b => b.onclick = () => openVoucher(b.dataset.openTx));
+      const syncO = () => { $("#rvKindOW", sheet).hidden = $("#rvKind", sheet).value !== "أخرى"; $("#rvCatOW", sheet).hidden = $("#rvCat", sheet).value !== "أخرى"; };
+      $("#rvKind", sheet).onchange = $("#rvCat", sheet).onchange = syncO; syncO();
       if (ro) return;
       const pb = $("#rvPayBtn", sheet); if (pb) pb.onclick = () => openPay(r.id);
       const arm = (b, text, fn) => { if (!b) return; b.onclick = async () => { if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = text; return; } b.disabled = true; if (await fn()) closeModal(); else b.disabled = false; }; };
@@ -173,7 +178,11 @@ ${r ? `<p class="c-sub">استُلم ${money(paidOf(r))} من ${money(+r.amount 
         if (r && amount < paidOf(r)) return bad(`استُلم ${money(paidOf(r))} من هذا المستحق، فلا يكون المبلغ أقل منه.`);
         const phone = phRaw ? normPhone(phRaw) : "";
         if (phRaw && !phone) return bad("اكتب رقم جوال سعودي صحيح يبدأ بـ 05، أو اتركه فارغًا.");
-        const body = { name, phone, amount, due: $("#rvDue", sheet).value || "", kind: $("#rvKind", sheet).value, category: $("#rvCat", sheet).value, reason: $("#rvReason", sheet).value.trim() };
+        const kind = $("#rvKind", sheet).value, category = $("#rvCat", sheet).value;
+        const kindOther = kind === "أخرى" ? $("#rvKindO", sheet).value.trim() : "", catOther = category === "أخرى" ? $("#rvCatO", sheet).value.trim() : "";
+        if (kind === "أخرى" && !kindOther) return bad("النوع «أخرى»: اكتب نوعه في خانة «حدّد النوع».");
+        if (category === "أخرى" && !catOther) return bad("البند «أخرى»: اكتب نوعه في خانة «حدّد البند».");
+        const body = { name, phone, amount, due: $("#rvDue", sheet).value || "", kind, kindOther, category, catOther, reason: $("#rvReason", sheet).value.trim() };
         const ok = r ? await write(() => S.db.doc(`${COL}/${r.id}`).update({ ...body, updatedAt: new Date().toISOString(), updatedBy: S.uid }), "حُفظ المستحق")
           : await write(() => S.db.collection(COL).add({ ...body, status: "open", createdAt: new Date().toISOString(), createdBy: S.uid }), `أُضيف مستحق ${money(amount)} على ${name}`);
         if (ok) closeModal();
@@ -190,7 +199,7 @@ ${r ? `<p class="c-sub">استُلم ${money(paidOf(r))} من ${money(+r.amount 
 <div class="field"><label for="rpAmount">المبلغ المستلم (ر.س)</label><input type="number" id="rpAmount" min="0.01" step="0.01" max="${rest}" inputmode="decimal" value="${rest}"><span class="sub">المتبقي ${money(rest)}</span></div>
 <div class="field"><label for="rpDate">التاريخ</label><input type="date" id="rpDate" value="${todayISO()}"></div>
 <div class="field"><label for="rpMethod">طريقة الدفع</label><select id="rpMethod">${Object.entries(METHODS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></div>
-<div class="field"><label>البند</label><input type="text" value="${esc(r.category || "تبرعات")}" disabled></div>
+<div class="field"><label>البند</label><input type="text" value="${esc((r.category || "تبرعات") + (r.catOther ? ": " + r.catOther : ""))}" disabled></div>
 </div><p class="c-sub">يُسجَّل سند قبض بهذا المبلغ ويدخل في الرصيد، وينقص من المستحق. تقدر تستلم على دفعات.</p><p class="err" id="rpErr" hidden></p></div>
 <footer><button class="btn inc" type="submit">حفظ سند القبض</button><button class="btn" type="button" data-close>إلغاء</button></footer></form>`, sheet => {
       $("#rpForm", sheet).onsubmit = async e => {
@@ -200,7 +209,7 @@ ${r ? `<p class="c-sub">استُلم ${money(paidOf(r))} من ${money(+r.amount 
         if (amount > rest + 0.001) { er.textContent = `المبلغ أكبر من المتبقي (${money(rest)}).`; er.hidden = false; return; }
         if (!date) { er.textContent = "اختر التاريخ."; er.hidden = false; return; }
         const btn = e.submitter; if (btn) btn.disabled = true;
-        const tx = { type: "income", no: nextNo, amount, date, category: r.category || "تبرعات", method: $("#rpMethod", sheet).value, halaqaId: "", studentId: "", teacherId: "", rewardMonth: "", feeMonth: "",
+        const tx = { type: "income", no: nextNo, amount, date, category: r.category || "تبرعات", catOther: r.catOther || "", method: $("#rpMethod", sheet).value, halaqaId: "", studentId: "", teacherId: "", rewardMonth: "", feeMonth: "",
           party: r.name, note: `سداد مستحق${r.reason ? ": " + r.reason : ""}`, receivableId: r.id, void: false, createdAt: new Date().toISOString(), createdBy: S.uid || "" };
         const ok = await write(() => S.db.collection("transactions").add(tx), `سُجّل سند القبض ${vno(tx)} بمبلغ ${money(amount)}${amount < rest ? `، وباقي ${money(rest - amount)}` : "، وسُدّد المستحق كاملًا"}`);
         if (ok) closeModal(); else if (btn) btn.disabled = false;
