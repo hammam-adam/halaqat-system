@@ -581,7 +581,7 @@ ${t.note?`<dt>ملاحظات</dt><dd>${esc(t.note)}</dd>`:""}
 </dl></div>
 ${t.void?`<div class="stamp">ملغى</div>`:""}
 </div>${t.void&&t.voidReason?`<p class="sub" style="margin:0">سبب الإلغاء: ${esc(t.voidReason)}</p>`:""}</div>
-<footer>${canW()&&!t.void?`<button class="btn" type="button" id="vEdit">تعديل</button><span class="spacer"></span><input type="text" id="vReason" placeholder="سبب الإلغاء (اختياري)" style="width:auto;flex:0 1 200px"><button class="btn danger" type="button" id="vVoid">إلغاء السند</button>`:`<button class="btn" type="button" data-close>إغلاق</button>`}</footer>`, sheet=>{
+<footer>${canW()&&!t.void&&(S.role!=="accountant"||t.createdBy===S.uid)?`<button class="btn" type="button" id="vEdit">تعديل</button><span class="spacer"></span><input type="text" id="vReason" placeholder="سبب الإلغاء (اختياري)" style="width:auto;flex:0 1 200px"><button class="btn danger" type="button" id="vVoid">إلغاء السند</button>`:`${canW()&&!t.void?`<span class="sub" style="margin-inline-end:auto">سجّل هذا السند مستخدم آخر، فلا تعدّله أو تلغيه إلا هو أو مدير النظام.</span>`:""}<button class="btn" type="button" data-close>إغلاق</button>`}</footer>`, sheet=>{
 const ed=$("#vEdit",sheet); if(ed) ed.onclick=()=>openTx(t.type,{},t);
 const vv=$("#vVoid",sheet); if(vv) vv.onclick=async()=>{
 if(!vv.classList.contains("armed")){ vv.classList.add("armed"); vv.textContent="تأكيد الإلغاء"; return; }

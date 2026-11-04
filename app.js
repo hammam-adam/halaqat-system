@@ -221,10 +221,11 @@ h1,h2,h3,h4{letter-spacing:0}
   document.getElementById("pwEye").onclick = () => { const i = document.getElementById("pwIn"), show = i.type === "password"; i.type = show ? "text" : "password"; document.getElementById("pwEye").textContent = show ? "إخفاء" : "إظهار"; };
   setMethod(authMethod);
 
-  const s = document.createElement("script");
-  s.src = "core.js";
-  s.onload = () => { const c = document.createElement("script"); c.src = "custody.js"; c.onload = () => { const x = document.createElement("script"); x.src = "extras.js"; x.onload = () => { const y = document.createElement("script"); y.src = "settings.js"; y.onload = () => { const n = document.createElement("script"); n.src = "notify.js"; n.onload = n.onerror = () => { const z = document.createElement("script"); z.src = "reward.js"; z.onload = start; z.onerror = start; document.body.appendChild(z); }; document.body.appendChild(n); }; document.body.appendChild(y); }; document.body.appendChild(x); }; document.body.appendChild(c); };
-  document.body.appendChild(s);
+  /* تحميل الملفات بالتوازي مع الحفاظ على ترتيب التنفيذ */
+  const FILES = ["core.js", "custody.js", "extras.js", "settings.js", "notify.js", "reward.js", "audit.js"];
+  let left = FILES.length, started = false;
+  const done = () => { if (--left === 0 && !started) { started = true; start(); } };
+  FILES.forEach(f => { const el = document.createElement("script"); el.src = f; el.async = false; el.onload = el.onerror = done; document.body.appendChild(el); });
 
   function start(){
     const TK = "halaqat.token";
@@ -359,9 +360,11 @@ h1,h2,h3,h4{letter-spacing:0}
       if (inside) return;
       inside = true;
       S.uid = info.phone; S.phone = info.phone; S.isAdmin = info.role === "admin";
+      S.role = info.role; S.isTech = info.role === "tech"; S.canSys = S.isAdmin || S.isTech;
+      S.me = { ...(S.me || {}), name: info.name || S.me?.name || "", title: info.title || "", role: info.role };
       const ctx = { rpc, token: () => token };
-      if (info.role === "custodian") {
-        /* custody holders see only their own custodies */
+      if (info.role === "custodian" || info.role === "tech") {
+        /* الإداريون والدعم الفني: عهدهم ومهامهم فقط، والدعم الفني يرى إعدادات النظام */
         S.canWrite = false; document.documentElement.classList.add("is-cust");
         await Custody.init(ctx);
         origStep(null); __hideSplash(); show("custody");

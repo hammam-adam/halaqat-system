@@ -275,7 +275,7 @@ tr.click,tr[data-c-open]{cursor:pointer}
 
   /* custody holders have no side nav: a switcher between their two pages */
   const switcher = cur => {
-    if (T.role !== "custodian" && document.documentElement.classList.contains("is-cust") === false) return "";
+    if (!isCustRole(T.role) && document.documentElement.classList.contains("is-cust") === false) return "";
     const n = openMine().length;
     return `<div class="cs-switch"><div class="seg"><button type="button" data-go="custody" aria-pressed="${cur === "custody"}">عهدي</button><button type="button" data-go="tasks" aria-pressed="${cur === "tasks"}">مهامي${n ? `<span class="badge">${n}</span>` : ""}</button></div></div>`;
   };
@@ -289,7 +289,7 @@ tr.click,tr[data-c-open]{cursor:pointer}
       const tabs = [["open", "الحالية"], ["done", "المنجزة"], ["all", "الكل"]];
       const people = [...new Map(T.list.map(t => [t.assignee, t.assignee_name || showPhone(t.assignee)])).entries()].sort((x, y) => x[1].localeCompare(y[1], "ar"));
       return `${switcher("tasks")}<div class="page">
-${pageHead(m ? "المهام" : "مهامي", a ? "أسند المهام لأصحاب العهد والمستخدمين، وتصلهم على واتساب." : m ? "المهام المسندة من مدير النظام وحالة إنجازها." : "المهام المسندة إليك من مدير النظام. اضغط «تم الإنجاز» عند الانتهاء.",
+${pageHead(m ? "المهام" : "مهامي", a ? "أسند المهام للإداريين والمستخدمين، وتصلهم على واتساب." : m ? "المهام المسندة من مدير النظام وحالة إنجازها." : "المهام المسندة إليك من مدير النظام. اضغط «تم الإنجاز» عند الانتهاء.",
   a ? `<button class="btn primary" type="button" id="tkNew">${ICON.plus}مهمة جديدة</button>` : "")}
 <div class="filters"><div class="seg" id="tkTabs">${tabs.map(([k, t]) => `<button type="button" data-tab="${k}" aria-pressed="${T.tab === k}">${t}</button>`).join("")}</div>
 ${m ? `<select id="tkWho" aria-label="الشخص"><option value="">الكل</option>${people.map(([ph, n]) => `<option value="${esc(ph)}"${T.who === ph ? " selected" : ""}>${esc(n)}</option>`).join("")}</select>` : ""}</div>
@@ -407,7 +407,7 @@ ${a ? `<button class="btn sm ghost" type="button" data-tk-del="${t.id}">حذف</
 (function(){
   const M = { role: null, people: [], log: [], pick: new Set(), q: "", loaded: false };
   let rpc, token;
-  const ROLE = { admin: "مدير النظام", accountant: "مدير حسابات", staff: "مستخدم", custodian: "صاحب عهدة" };
+  const ROLE = new Proxy({}, { get: (_, r) => window.roleName ? roleName(r) : r });
   const ERR = { no_body: "اكتب نص الرسالة.", no_recipients: "اختر مستلمًا واحدًا على الأقل.", too_long: "الرسالة طويلة، اختصرها إلى 3000 حرف.", forbidden: "ليست لديك صلاحية لهذا الإجراء." };
   const ICO = { mail: svg("M4 6h16v12H4zM4 7l8 6 8-6") };
   const css = document.createElement("style");
@@ -453,7 +453,7 @@ ${pageHead("الرسائل", `اكتب رسالة وأرسلها على واتس
 <div class="msg-grid">
 <section class="panel"><header><h3>رسالة جديدة</h3></header><form class="msg-form" id="msgForm" novalidate>
 <div class="field"><label>المستلمون</label>
-<div class="msg-groups" id="msgGroups">${[["all", "الكل"], ["custodian", "أصحاب العهد"], ["admin", "مدير النظام"], ["accountant", "مدير الحسابات"]]
+<div class="msg-groups" id="msgGroups">${[["all", "الكل"], ["custodian", "الإداريون"], ["tech", "الدعم الفني"], ["accountant", "المحاسبون"], ["admin", "مدير النظام"]]
   .filter(([g]) => g === "all" || M.people.some(p => p.role === g)).map(([g, t]) => `<button class="btn sm" type="button" data-g="${g}">${t}</button>`).join("")}<button class="btn sm" type="button" data-g="none">إلغاء التحديد</button></div></div>
 <input type="search" id="msgQ" placeholder="بحث بالاسم" value="${esc(M.q)}">
 <div class="msg-people" id="msgPeople"></div>

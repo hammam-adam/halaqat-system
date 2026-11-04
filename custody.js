@@ -1,8 +1,18 @@
 // Custodies (العهد): requests, issuing within an accounts manager's budget, invoices, settlement.
 // Loaded by app.js after core.js; app.js calls Custody.init({ rpc, token }) once signed in.
 (function(){
-  const ROLE_LABEL = { admin: "مدير النظام", accountant: "مدير حسابات", staff: "مستخدم", custodian: "صاحب عهدة" };
-  const ROLE_CHIP = { admin: "good", accountant: "info", staff: "mute", custodian: "warn" };
+  /* الأدوار في مكان واحد، وتستخدمها بقية الملفات */
+  const ROLES = window.ROLES = {
+    custodian: { name: "إداري", chip: "warn", desc: "عهده ومهامه فقط، مثل شؤون الطلاب والشؤون التعليمية. لا يرى المالية ولا بيانات غيره." },
+    tech: { name: "الدعم الفني", chip: "mute", desc: "عهده ومهامه، وإعدادات المظهر وواتساب، وحسابات الإداريين والدعم الفني. لا يرى المالية ولا سجل التعديلات." },
+    accountant: { name: "المحاسب", chip: "info", desc: "السندات والرسوم والمكافآت، ويصرف العهد ويعتمدها في حدود مبلغ الصلاحية. يعدّل أو يلغي سنداته هو فقط." },
+    admin: { name: "مدير النظام", chip: "good", desc: "كل الصلاحيات: المالية والعهد والمهام والمستخدمين وسجل التعديلات والنسخ الاحتياطي." },
+    staff: { name: "مستخدم مالي", chip: "mute", desc: "السندات والرسوم والمكافآت بدون حد للمبلغ (صلاحية قديمة)." }
+  };
+  const ROLE_LABEL = Object.fromEntries(Object.entries(ROLES).map(([k, v]) => [k, v.name]));
+  const ROLE_CHIP = Object.fromEntries(Object.entries(ROLES).map(([k, v]) => [k, v.chip]));
+  window.roleName = r => ROLES[r]?.name || r || "";
+  window.isCustRole = r => r === "custodian" || r === "tech";
   const ST = {
     requested: ["طلب جديد", "warn"], open: ["قائمة", "info"], submitted: ["بانتظار التصفية", "warn"],
     closed: ["مغلقة", "good"], rejected: ["مرفوضة", "bad"]
@@ -239,7 +249,7 @@ ${rows.map(g => `<tr class="click" data-who="${esc(g.ph)}" tabindex="0">
 <div class="field wide"><label for="ciHolder">صاحب العهدة</label><select id="ciHolder"><option value="">اختر…</option>${opts.map(h => `<option value="${esc(h.phone)}">${esc(h.name || showPhone(h.phone))} — ${ROLE_LABEL[h.role] || ""}</option>`).join("")}</select></div>
 <div class="field"><label for="ciAmt">المبلغ (ر.س)</label><input type="number" id="ciAmt" min="1" step="0.01" inputmode="decimal" placeholder="0"></div>
 <div class="field wide"><label for="ciPur">الغرض</label><input type="text" id="ciPur" placeholder="مثال: مستلزمات الحلقات لشهر ربيع الآخر"></div>
-</div>${opts.length ? "" : `<p class="c-sub">لا يوجد أصحاب عهد. أضفهم من صفحة «المستخدمون» بصلاحية «صاحب عهدة».</p>`}<p class="err" id="ciErr" hidden></p></div>
+</div>${opts.length ? "" : `<p class="c-sub">لا يوجد مستخدمون تُصرف لهم عهدة. أضفهم من الإعدادات ← المستخدمون بصلاحية «إداري».</p>`}<p class="err" id="ciErr" hidden></p></div>
 <footer><button class="btn primary" type="submit">صرف العهدة</button><button class="btn" type="button" data-close>إلغاء</button></footer></form>`, sheet => {
       $("#ciForm", sheet).onsubmit = async e => { e.preventDefault();
         if (!$("#ciHolder", sheet).value) return formErr(sheet, "#ciErr", ERR.no_holder);
@@ -402,46 +412,42 @@ ${addForm}${actions}${canEdit ? `<p class="c-sub">${fresh ? "«تصفية جزئ
 
   /* ---------- users page: four roles and the accounts manager's budget ---------- */
   views.users.fill = function(){
-    const me = S.phone, order = { admin: 0, accountant: 1, staff: 2, custodian: 3 };
-    $("#memberList").innerHTML = !S.members.length ? empty(ICON.users, "لا يوجد مستخدمون", "أضف أرقام المحاسب والمشرفين وأصحاب العهد.") :
+    const me = S.phone, order = { admin: 0, accountant: 1, staff: 2, tech: 3, custodian: 4 };
+    $("#memberList").innerHTML = !S.members.length ? empty(ICON.users, "لا يوجد مستخدمون", "أضف أرقام المحاسب والإداريين.") :
 `<div class="tbl"><table class="dt"><thead><tr><th>الاسم</th><th>الجوال</th><th>الصلاحية</th><th class="n">رصيد الصلاحية</th><th>كلمة المرور</th><th></th></tr></thead><tbody>
 ${S.members.slice().sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9) || (a.name || "").localeCompare(b.name || "", "ar")).map(m => `<tr class="click" data-edit-member="${esc(m.phone)}" tabindex="0">
 <td class="main"><div class="who"><span class="avatar">${esc(initial(m.name || "؟"))}</span><div class="title">${esc(m.name || "بدون اسم")}${m.phone === me ? ` <span class="tag">أنت</span>` : ""}</div></div></td>
 <td data-label="الجوال" class="num" dir="ltr" style="text-align:right">${esc(showPhone(m.phone))}</td>
-<td data-label="الصلاحية"><span class="chip ${ROLE_CHIP[m.role] || "mute"}">${ROLE_LABEL[m.role] || m.role}</span></td>
+<td data-label="الصلاحية"><span class="chip ${ROLE_CHIP[m.role] || "mute"}">${ROLE_LABEL[m.role] || m.role}</span>${m.title ? `<div class="sub">${esc(m.title)}</div>` : ""}</td>
 <td data-label="رصيد الصلاحية" class="n">${m.role === "accountant" ? money(m.budget) : `<span class="sub">—</span>`}</td>
 <td data-label="كلمة المرور">${m.init_password ? `<span class="pw-init" title="وضعها المدير، وتختفي إذا غيّرها المستخدم"><code>${esc(m.init_password)}</code></span>` : m.has_password ? `<span class="chip good">خاصة بالمستخدم</span>` : `<span class="sub">لا توجد</span>`}</td>
 <td data-label="" class="n">${m.phone === me ? "" : `<button class="btn sm danger" type="button" data-del-member="${esc(m.phone)}">إزالة</button>`}</td></tr>`).join("")}
 </tbody></table></div>`;
   };
-  const ROLE_OPTS = [
-    ["staff", "مستخدم — السندات والرسوم والمكافآت"],
-    ["accountant", "مدير حسابات — كل شيء في حدود مبلغ الصلاحية، ويعتمد العهد"],
-    ["custodian", "صاحب عهدة — طلب العهدة وتسديدها ورفع الفواتير فقط"],
-    ["admin", "مدير النظام — كل الصلاحيات وإضافة المستخدمين"]
-  ];
+  const roleOpts = cur => (S.isAdmin ? ["custodian", "tech", "accountant", "admin"] : ["custodian", "tech"]).concat(cur === "staff" ? ["staff"] : []);
   window.openMember = function(phone){
     const m = phone ? S.members.find(x => x.phone === phone) : null;
     openModal(`<form id="mForm" novalidate><header><h3>${m ? "تعديل المستخدم" : "مستخدم جديد"}</h3>${closeBtn}</header>
 <div class="content"><div class="form-grid">
-<div class="field wide"><label for="mName">الاسم</label><input type="text" id="mName" value="${esc(m?.name || "")}" placeholder="مثال: محاسب المجمع"></div>
+<div class="field wide"><label for="mName">الاسم</label><input type="text" id="mName" value="${esc(m?.name || "")}" placeholder="مثال: محمد العتيبي"></div>
 <div class="field"><label for="mPhone">رقم الجوال (واتساب)</label><input type="tel" id="mPhone" dir="ltr" style="text-align:right" placeholder="05XXXXXXXX" value="${m ? esc(showPhone(m.phone)) : ""}"${m ? " disabled" : ""}></div>
-<div class="field wide"><label for="mRole">الصلاحية</label><select id="mRole">${ROLE_OPTS.map(([k, t]) => `<option value="${k}"${(m?.role || "staff") === k ? " selected" : ""}>${t}</option>`).join("")}</select></div>
+<div class="field wide"><label for="mRole">الصلاحية</label><select id="mRole">${roleOpts(m?.role).map(k => `<option value="${k}"${(m?.role || "custodian") === k ? " selected" : ""}>${ROLES[k].name}</option>`).join("")}</select><p class="c-sub" id="mRoleDesc"></p></div>
+<div class="field wide" id="mTitleW"><label for="mTitle">المسمى الوظيفي <span class="sub">(اختياري)</span></label><input type="text" id="mTitle" maxlength="60" list="mTitles" value="${esc(m?.title || "")}" placeholder="مثال: شؤون الطلاب"><datalist id="mTitles"><option value="شؤون الطلاب"><option value="الشؤون التعليمية"><option value="شؤون المعلمين"><option value="العلاقات العامة"><option value="الدعم الفني"><option value="المستودع والمشتريات"></datalist></div>
 <div class="field" id="mBudgetW"><label for="mBudget">${m ? "رصيد الصلاحية المتاح (ر.س)" : "مبلغ الصلاحية (ر.س)"}</label><input type="number" id="mBudget" min="0" step="0.01" inputmode="decimal" value="${m ? +m.budget || 0 : ""}" placeholder="مثال: 10000"></div>
 <div class="field wide"><label for="mEmail">البريد الإلكتروني <span class="sub">(اختياري)</span></label><input type="email" id="mEmail" dir="ltr" style="text-align:right" autocomplete="off" placeholder="name@example.com" value="${esc(m?.email || "")}"></div>
 <div class="field wide"><label for="mPw">${m ? "كلمة مرور جديدة (اختياري)" : "كلمة المرور الأولى (اختياري)"}</label><div class="pw-wrap"><input type="text" id="mPw" dir="ltr" autocomplete="off" minlength="6" placeholder="${m ? "اتركها فارغة لإبقاء كلمة المرور الحالية" : "6 أحرف على الأقل"}"><button type="button" class="btn sm" id="mPwGen">توليد</button></div></div>
 </div><p class="c-sub">${m?.phone === S.phone ? "كلمة مرورك أنت تُخفى عن الجميع." : "تظهر لك في جدول المستخدمين لين يغيّرها المستخدم من الإعدادات. ويقدر يدخل برمز واتساب في أي وقت."}</p><p class="c-sub" id="mBudgetHint">ينقص الرصيد مع كل عهدة يصرفها أو سند صرف يسجّله، ويعود إليه ما يُرجَع من العهد أو سند يُلغى. زِده متى ما أردت.</p>
 <p class="err" id="mErr" hidden></p></div>
 <footer><button class="btn primary" type="submit">${m ? "حفظ" : "إضافة"}</button><button class="btn" type="button" data-close>إلغاء</button></footer></form>`, sheet => {
-      const sync = () => { const a = $("#mRole", sheet).value === "accountant"; $("#mBudgetW", sheet).hidden = $("#mBudgetHint", sheet).hidden = !a; };
+      const sync = () => { const r = $("#mRole", sheet).value, a = r === "accountant"; $("#mBudgetW", sheet).hidden = $("#mBudgetHint", sheet).hidden = !a; $("#mRoleDesc", sheet).textContent = ROLES[r]?.desc || ""; };
       $("#mRole", sheet).onchange = sync; sync();
       $("#mPwGen", sheet).onclick = () => { const a = "abcdefghjkmnpqrstuvwxyz23456789", r = crypto.getRandomValues(new Uint32Array(8)); $("#mPw", sheet).value = [...r].map(x => a[x % a.length]).join(""); };
       $("#mForm", sheet).onsubmit = async e => { e.preventDefault(); const er = $("#mErr", sheet);
-        const args = { p_token: token(), p_name: $("#mName", sheet).value.trim(), p_role: $("#mRole", sheet).value, p_budget: parseFloat($("#mBudget", sheet).value) || 0, p_password: $("#mPw", sheet).value.trim() || null, p_email: $("#mEmail", sheet).value.trim() || null };
+        const args = { p_token: token(), p_name: $("#mName", sheet).value.trim(), p_role: $("#mRole", sheet).value, p_budget: parseFloat($("#mBudget", sheet).value) || 0, p_password: $("#mPw", sheet).value.trim() || null, p_email: $("#mEmail", sheet).value.trim() || null, p_title: $("#mTitle", sheet).value.trim() || null };
         if (args.p_email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(args.p_email)) { er.textContent = "اكتب بريدًا إلكترونيًا صحيحًا، أو اتركه فارغًا."; er.hidden = false; return; }
         if (args.p_password && args.p_password.length < 6) { er.textContent = "كلمة المرور 6 أحرف على الأقل."; er.hidden = false; return; }
         const r = m ? await rpc("member_update", { ...args, p_phone: m.phone }) : await rpc("member_add", { ...args, p_phone: $("#mPhone", sheet).value });
-        if (r?.error) { er.textContent = r.error === "exists" ? "هذا الرقم مسجّل من قبل." : r.error === "bad_phone" ? "اكتب رقم جوال سعودي صحيح يبدأ بـ 05." : r.error === "self" ? "لا يمكنك تغيير صلاحيتك أنت." : r.error === "bad_password" ? "كلمة المرور من 6 إلى 64 حرفًا." : r.error === "bad_email" ? "البريد الإلكتروني غير صحيح." : "تعذّر الحفظ. أعد المحاولة."; er.hidden = false; return; }
+        if (r?.error) { er.textContent = r.error === "exists" ? "هذا الرقم مسجّل من قبل." : r.error === "bad_phone" ? "اكتب رقم جوال سعودي صحيح يبدأ بـ 05." : r.error === "self" ? "لا يمكنك تغيير صلاحيتك أنت." : r.error === "bad_password" ? "كلمة المرور من 6 إلى 64 حرفًا." : r.error === "bad_email" ? "البريد الإلكتروني غير صحيح." : r.error === "forbidden" ? "ليست لديك صلاحية لإدارة هذا النوع من الحسابات." : "تعذّر الحفظ. أعد المحاولة."; er.hidden = false; return; }
         toast(m ? "حُفظت التعديلات" : args.p_password ? "أُضيف المستخدم. يدخل برقمه وكلمة المرور، أو برمز واتساب." : "أُضيف المستخدم. يقدر يدخل الآن برقمه."); closeModal(); loadMembers(); load(); };
     });
   };
@@ -481,7 +487,7 @@ ${S.members.slice().sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9) |
   const origPaint = paintHeader;
   window.paintHeader = function(){
     origPaint();
-    const role = C.me?.role, cust = role === "custodian";
+    const role = C.me?.role, cust = isCustRole(role);
     document.querySelectorAll(".nav button").forEach(b => { if (b.dataset.view !== "custody" && b.id !== "navUsers") b.hidden = cust; });
     $("#navCustT").textContent = mgr() ? "العهد" : "عهدي";
     const n = C.list.filter(needsMe).length, bc = $("#bCust");
@@ -493,7 +499,7 @@ ${S.members.slice().sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9) |
   };
   const origShow = show;
   window.show = function(v){
-    if (C.me?.role === "custodian") v = "custody";
+    if (isCustRole(C.me?.role) && v !== "tasks" && v !== "settings") v = "custody";
     if (v !== "custody" || S.db) return origShow(v);
     S.view = "custody";
     $("#view").innerHTML = views.custody.shell();
@@ -505,6 +511,8 @@ ${S.members.slice().sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9) |
     catch (e) {
       if (e?.message === "over_budget") toast(`المبلغ يتجاوز رصيد صلاحيتك (${money(C.me?.budget || 0)}). اطلب من مدير النظام زيادته.`);
       else if (e?.message === "forbidden") toast("ليست لديك صلاحية لهذا الإجراء.");
+      else if (e?.message === "not_yours") notify("رُفض التعديل: هذا السند سجّله مستخدم آخر، ولا يعدّله أو يلغيه إلا هو أو مدير النظام.", "bad");
+      else if (e?.message === "no_delete") notify("رُفض الحذف: السندات لا تُحذف. ألغِ السند بدلًا من حذفه، ويبقى في السجل.", "bad");
       else toast("تعذّر الحفظ. تحقق من الاتصال وأعد المحاولة.");
       return false;
     }
