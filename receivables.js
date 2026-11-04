@@ -1,11 +1,11 @@
 // المستحقات: مبالغ للمجمع عند أشخاص أو جهات ولم تُستلم بعد (متبرع وعد، جهة متأخرة، سلفة...).
 // لا تدخل في رصيد الصندوق. عند الاستلام يُسجَّل سند قبض مربوط بالمستحق، وإلغاء السند يعيد المبلغ مستحقًا.
-// ويرتّب هذا الملف القائمة الجانبية بأقسام: الإيرادات، المصروفات، الإدارة.
+// وصفحة «الإيرادات» تجمع رسوم الطلاب والمستحقات بتبويبات جانبية مثل الإعدادات.
 (function(){
   const css = document.createElement("style");
   css.textContent = `
-.nav-sec{font-size:11px;font-weight:600;color:var(--side-muted);opacity:.75;padding:14px 14px 4px;letter-spacing:.02em}
-@media (max-width:980px){.nav-sec{display:none}}
+.rev-wrap .set-tabs .badge{position:static;margin-inline-start:auto}
+.rev-wrap #revBody>.page{padding:0;margin:0;max-width:none}
 .rv-list{display:grid}
 .rv{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:14px 16px;border-top:1px solid var(--line)}
 .rv:first-child{border-top:0}
@@ -34,34 +34,51 @@
   const isLate = r => isOpen(r) && r.due && r.due < todayISO();
   const mgr = () => canW() && !isCustRole(S.role);
 
-  /* القائمة الجانبية: زر المستحقات، ثم الأقسام */
-  const navBtn = document.createElement("button");
-  navBtn.type = "button"; navBtn.setAttribute("role", "tab"); navBtn.dataset.view = "receivables";
-  navBtn.innerHTML = `${ICO}المستحقات<span class="badge" id="bRecv" hidden></span>`;
-  navBtn.onclick = () => { show("receivables"); window.scrollTo({ top: 0 }); };
-  const nav = document.querySelector(".nav");
-  const GROUPS = [[null, ["summary", "ledger"]], ["الإيرادات", ["fees", "receivables"]], ["المصروفات", ["teachers", "custody"]], ["الإدارة", ["tasks", "messages", "reports"]], [null, ["settings"]]];
-  if (nav) {
-    nav.appendChild(navBtn);
-    const byView = v => nav.querySelector(`:scope > button[data-view="${v}"]`);
-    const placed = new Set();
-    GROUPS.forEach(([label, views]) => {
-      if (label) { const d = document.createElement("div"); d.className = "nav-sec"; d.textContent = label; d.dataset.sec = views.join(","); nav.appendChild(d); }
-      views.forEach(v => { const b = byView(v); if (b) { nav.appendChild(b); placed.add(b); } });
-    });
-    [...nav.querySelectorAll(":scope > button")].filter(b => !placed.has(b)).forEach(b => nav.insertBefore(b, nav.querySelector('[data-view="settings"]')));
+  /* زر «رسوم الطلاب» في القائمة يصير «الإيرادات» */
+  const navBtn = document.querySelector('.nav [data-view="fees"]');
+  if (navBtn) {
+    navBtn.dataset.view = "revenue";
+    const t = [...navBtn.childNodes].find(n => n.nodeType === 3 && n.textContent.trim()); if (t) t.textContent = "الإيرادات";
   }
+  let sub = "fees";
+  try { sub = localStorage.getItem("halaqat.revTab") === "receivables" ? "receivables" : "fees"; } catch (e) {}
+  const TAB_ICO = { fees: svg("M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 10h18M7 15h4"), receivables: ICO };
+  const TABS = [["fees", "رسوم الطلاب", "من سدّد ومن لم يسدّد"], ["receivables", "المستحقات", "مبالغ لك عند الآخرين"]];
+  views.revenue = {
+    shell(){
+      return `<div class="page"><div class="set-wrap rev-wrap"><nav class="set-tabs" role="tablist" aria-label="أقسام الإيرادات">${TABS.map(([k, t, d]) => `<button type="button" role="tab" data-rev-tab="${k}" aria-pressed="${k === sub}">${TAB_ICO[k]}<span>${t}<small>${d}</small></span><span class="badge" data-rev-badge="${k}" hidden></span></button>`).join("")}</nav>
+<div id="revBody">${views[sub].shell()}</div></div></div>`;
+    },
+    bind(){
+      document.querySelector(".rev-wrap .set-tabs").onclick = e => {
+        const b = e.target.closest("[data-rev-tab]"); if (!b || b.dataset.revTab === sub) return;
+        sub = b.dataset.revTab; try { localStorage.setItem("halaqat.revTab", sub); } catch (x) {}
+        document.querySelectorAll("[data-rev-tab]").forEach(x => x.setAttribute("aria-pressed", x === b));
+        $("#revBody").innerHTML = views[sub].shell(); views[sub].bind?.(); views[sub].fill(); paintBadge();
+        if (innerWidth <= 860) $("#revBody").scrollIntoView({ behavior: "smooth", block: "start" });
+      };
+      views[sub].bind?.();
+    },
+    fill(){ views[sub].fill(); }
+  };
+  const prevShow = window.show;
+  window.show = function(v){
+    if (v === "fees" || v === "receivables") { sub = v; try { localStorage.setItem("halaqat.revTab", sub); } catch (e) {} v = "revenue"; }
+    return prevShow(v);
+  };
 
   const prevPaint = window.paintHeader;
   window.paintHeader = function(){
     prevPaint.apply(this, arguments);
-    if (S.db && !R.sub) { R.sub = true; S.db.collection(COL).onSnapshot(s => { R.list = s.docs.map(d => ({ id: d.id, ...d.data() })); paintBadge(); if (S.view === "receivables" && $("#rvBody")) views.receivables.fill(); if (S.view === "summary") paintSummary(); }); }
-    navBtn.hidden = !S.db || isCustRole(S.role);
-    navBtn.setAttribute("aria-selected", S.view === "receivables" ? "true" : "false");
+    if (S.db && !R.sub) { R.sub = true; S.db.collection(COL).onSnapshot(s => { R.list = s.docs.map(d => ({ id: d.id, ...d.data() })); paintBadge(); if ($("#rvBody")) views.receivables.fill(); if (S.view === "summary") paintSummary(); }); }
     paintBadge();
-    nav?.querySelectorAll(".nav-sec").forEach(d => { d.hidden = !d.dataset.sec.split(",").some(v => { const b = nav.querySelector(`:scope > button[data-view="${v}"]`); return b && !b.hidden; }); });
   };
-  function paintBadge(){ const n = R.list.filter(isLate).length, b = $("#bRecv"); if (b) { b.textContent = n; b.hidden = !n; } }
+  function paintBadge(){
+    const late = R.list.filter(isLate).length, bf = $("#bFees"), nf = bf && !bf.hidden ? +bf.textContent || 0 : 0;
+    const set = (el, n) => { if (el) { el.textContent = n; el.hidden = !n; } };
+    set(document.querySelector('[data-rev-badge="fees"]'), nf); set(document.querySelector('[data-rev-badge="receivables"]'), late);
+    if (bf && late) { bf.textContent = nf + late; bf.hidden = false; bf.title = `${nf} طالب لم يكمل رسومه، و${late} مستحق متأخر`; }
+  }
 
   /* الملخص: سطر بإجمالي المستحقات (خارج الرصيد) */
   function paintSummary(){
