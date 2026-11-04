@@ -24,9 +24,32 @@
 .swatch i b{position:absolute;inset-inline-start:0;bottom:0;width:100%;height:9px}
 .swatch span{font-size:12px}
 .seg.mode-seg button{padding:6px 10px;font-size:12.5px}
-.set-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;margin-bottom:16px;width:fit-content;max-width:100%}
-.set-tabs button{padding:8px 16px;white-space:nowrap;flex:1 0 auto}
-@media (max-width:560px){.set-tabs{width:100%}.set-tabs button{padding:8px 10px}}
+.set-wrap{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;align-items:start}
+.set-tabs{display:grid;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:16px;position:sticky;top:16px}
+.set-tabs button{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:0;border-radius:10px;background:transparent;color:var(--fg);font:inherit;font-size:14px;text-align:start;cursor:pointer}
+.set-tabs button svg{width:18px;height:18px;flex:none;color:var(--muted)}
+.set-tabs button small{display:block;font-size:11.5px;color:var(--muted);font-weight:400;margin-top:1px}
+.set-tabs button:hover{background:var(--surface-2)}
+.set-tabs button[aria-pressed="true"]{background:var(--brand-soft);color:var(--brand);font-weight:600}
+.set-tabs button[aria-pressed="true"] svg{color:var(--brand)}
+@media (max-width:860px){.set-wrap{grid-template-columns:1fr}.set-tabs{position:static}}
+.acct-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.acct-grid .field{display:grid;gap:6px}
+.acct-grid input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line-strong);border-radius:10px;background:var(--surface);color:var(--fg);font:inherit;min-height:42px}
+.acct-grid input:disabled{background:var(--surface-2);color:var(--muted)}
+.ro-line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);min-height:42px}
+.dev-list,.act-list{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.dev-list>div,.act-list>button{display:flex;align-items:center;gap:12px;padding:11px 14px;border-top:1px solid var(--line);background:var(--surface);font:inherit;color:inherit;text-align:start;width:100%}
+.dev-list>div:first-child,.act-list>button:first-child{border-top:0}
+.act-list>button{cursor:pointer;border-inline:0;border-bottom:0}.act-list>button:hover{background:var(--surface-2)}
+.dev-list .ic{width:34px;height:34px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;flex:none;color:var(--muted)}
+.dev-list .ic svg{width:18px;height:18px}
+.dev-list b,.act-list b{font-weight:600;font-size:13.5px}
+.dev-list span,.act-list span{display:block;font-size:12px;color:var(--muted)}
+.dev-list .grow,.act-list .grow{flex:1;min-width:0}
+.act-list .amt{font-weight:600;font-size:13.5px;white-space:nowrap}
+.who-me .me-name{color:var(--side-fg);font-weight:700;font-size:15px}
+#mePhone{font-size:12px;color:var(--side-muted);font-weight:400}
 .set-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
 .set-row .hint{margin:0;font-size:13px;color:var(--muted);line-height:1.7;max-width:60ch}
 .sys-panel:first-child{margin-top:0}
@@ -63,17 +86,25 @@
   let tab = "account";
   try { tab = localStorage.getItem("halaqat.setTab") || "account"; } catch (e) {}
   const tabsFor = () => TABS.filter(t => !t[2] || S.isAdmin);
+  const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const TAB_ICON = {
+    account: svg('<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.6-3.4 3.4-5.5 7-5.5s6.4 2.1 7 5.5"/>'),
+    look: svg('<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/>'),
+    users: svg('<circle cx="9" cy="8" r="3"/><path d="M3.5 19c.5-3 2.8-4.8 5.5-4.8s5 1.8 5.5 4.8M16 5.5a3 3 0 0 1 0 5.5M18 14.5c1.6.6 2.6 2.1 2.9 4.5"/>'),
+    wa: svg('<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1z"/>')
+  };
+  const TAB_SUB = { account: "بياناتك وكلمة المرور والأجهزة", look: "الوضع الفاتح والداكن والألوان", users: "الأرقام المسموح لها بالدخول", wa: "رقم الإرسال ومفتاح الربط" };
 
   views.settings = {
     shell(){
       if (!tabsFor().some(t => t[0] === tab)) tab = "account";
-      return `<div class="page">${pageHead("الإعدادات", "حسابك وكلمة المرور، ومظهر الموقع" + (S.isAdmin ? "، والمستخدمون وربط واتساب." : "."), "")}
-<div class="seg set-tabs" role="tablist">${tabsFor().map(([k, t]) => `<button type="button" role="tab" data-set-tab="${k}" aria-pressed="${k === tab}">${t}</button>`).join("")}</div>
-<div id="setBody"></div></div>`;
+      return `<div class="page">${pageHead("الإعدادات", "", "")}
+<div class="set-wrap"><nav class="set-tabs" role="tablist" aria-label="أقسام الإعدادات">${tabsFor().map(([k, t]) => `<button type="button" role="tab" data-set-tab="${k}" aria-pressed="${k === tab}">${TAB_ICON[k]}<span>${t}<small>${TAB_SUB[k]}</small></span></button>`).join("")}</nav>
+<div id="setBody"></div></div></div>`;
     },
     bind(){
       $(".set-tabs").onclick = e => { const b = e.target.closest("[data-set-tab]"); if (!b) return; tab = b.dataset.setTab; try { localStorage.setItem("halaqat.setTab", tab); } catch (x) {}
-        document.querySelectorAll("[data-set-tab]").forEach(x => x.setAttribute("aria-pressed", x === b)); paintTab(); };
+        document.querySelectorAll("[data-set-tab]").forEach(x => x.setAttribute("aria-pressed", x === b)); paintTab(); if (innerWidth <= 860) $("#setBody")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
       paintTab();
     },
     fill(){ if (tab === "users" && $("#memberList")) views.users.fill(); }
@@ -93,31 +124,102 @@
     } else paintAccount();
   }
 
-  /* حسابي: كلمة المرور */
+  /* حسابي: بياناتي، كلمة المرور، الأجهزة، آخر عملياتي */
+  const ROLE_NAME = { admin: "مدير النظام", accountant: "مدير حسابات", staff: "مستخدم", custodian: "صاحب عهدة" };
+  const ERR = { bad_name: "اكتب اسمك (حرفين على الأقل).", bad_email: "البريد الإلكتروني غير صحيح.", bad_phone: "اكتب رقم جوال سعودي صحيح يبدأ بـ 05.", same_phone: "هذا رقمك الحالي.", exists: "هذا الرقم مسجّل لمستخدم آخر.", wrong_password: "كلمة المرور الحالية غير صحيحة.", bad_password: "كلمة المرور من 6 إلى 64 حرفًا." };
+  function device(ua){
+    ua = ua || "";
+    const os = /iPhone|iPad/.test(ua) ? "آيفون" : /Android/.test(ua) ? "أندرويد" : /Windows/.test(ua) ? "ويندوز" : /Mac OS/.test(ua) ? "ماك" : /Linux/.test(ua) ? "لينكس" : "جهاز";
+    const br = /Edg\//.test(ua) ? "Edge" : /CriOS|Chrome\//.test(ua) ? "Chrome" : /FxiOS|Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "";
+    const mob = /iPhone|Android.*Mobile/.test(ua);
+    return { name: ua ? `${os}${br ? " · " + br : ""}` : "جهاز غير معروف", mob };
+  }
+  const dt = iso => { try { const d = new Date(iso); return d.toLocaleDateString("ar-SA-u-ca-islamic-umalqura-nu-latn", { day: "numeric", month: "long", year: "numeric" }) + " · " + d.toLocaleTimeString("ar-SA-u-nu-latn", { hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; } };
   async function paintAccount(){
     const body = $("#setBody");
-    body.innerHTML = `<section class="panel sys-panel"><header><h3>كلمة المرور</h3></header><div class="ss-body"><p class="hint">جارٍ التحميل…</p></div></section>`;
-    const r = await appRpc("session_info");
-    const box = body.querySelector(".ss-body"); if (!box) return;
-    const has = !!r?.has_password, fromAdmin = !!r?.password_from_admin;
-    box.innerHTML = `<p class="hint">${!has ? "ما عندك كلمة مرور بعد. ضع كلمة مرور تدخل بها بدل انتظار رمز واتساب." : fromAdmin ? "كلمة مرورك الحالية وضعها مدير النظام ويقدر يشوفها. غيّرها لكلمة مرور تعرفها أنت فقط." : "تقدر تدخل بكلمة مرورك أو برمز واتساب. إذا نسيتها ادخل بالرمز وغيّرها من هنا."}</p>
-<form id="pwForm" class="ss-grid" novalidate>
-<div class="field"><label class="lbl" for="pwNew">كلمة المرور الجديدة</label><input type="password" id="pwNew" autocomplete="new-password" dir="ltr" minlength="6"></div>
+    body.innerHTML = `<section class="panel sys-panel"><div class="ss-body"><p class="hint">جارٍ التحميل…</p></div></section>`;
+    const r = await appRpc("my_profile");
+    if (!r?.ok) { body.innerHTML = `<div class="notice">تعذّر تحميل بيانات حسابك. حدّث الصفحة.</div>`; return; }
+    S.me = r; paintWho();
+    const has = r.has_password, fromAdmin = r.password_from_admin;
+    const mine = (S.tx || []).filter(t => t.createdBy === S.uid).sort((a, b) => (b.createdAt || b.date || "").localeCompare(a.createdAt || a.date || "")).slice(0, 8);
+    body.innerHTML = `
+<section class="panel sys-panel"><header><h3>بياناتي</h3></header><div class="ss-body">
+<form id="profForm" class="acct-grid" novalidate>
+<div class="field"><label class="lbl" for="pfName">الاسم</label><input id="pfName" value="${esc(r.name || "")}" autocomplete="name"></div>
+<div class="field"><label class="lbl" for="pfEmail">البريد الإلكتروني <span class="sub">(اختياري)</span></label><input id="pfEmail" type="email" dir="ltr" style="text-align:right" value="${esc(r.email || "")}" placeholder="name@example.com"></div>
+<div class="field"><span class="lbl">رقم الجوال</span><div class="ro-line"><b dir="ltr">${esc(showPhone(r.phone))}</b><button type="button" class="btn sm" id="pfPhoneBtn">تغيير الرقم</button></div></div>
+<div class="field"><span class="lbl">الصلاحية</span><div class="ro-line"><span>${ROLE_NAME[r.role] || r.role}</span>${r.role === "accountant" ? `<span class="sub">الرصيد ${money(r.budget)}</span>` : ""}</div></div>
+</form>
+<div class="ss-actions"><button class="btn primary" type="submit" form="profForm">حفظ البيانات</button><span class="ss-status" id="pfStatus"></span></div>
+</div></section>
+
+<section class="panel sys-panel"><header><h3>كلمة المرور</h3></header><div class="ss-body">
+<p class="hint">${!has ? "ما عندك كلمة مرور بعد. ضع كلمة مرور تدخل بها بدل انتظار رمز واتساب." : fromAdmin ? "كلمة مرورك الحالية وضعها مدير النظام ويقدر يشوفها. غيّرها لكلمة مرور تعرفها أنت فقط." : "تقدر تدخل بكلمة مرورك أو برمز واتساب. إذا نسيتها ادخل بالرمز وغيّرها من هنا."}</p>
+<form id="pwForm" class="acct-grid" novalidate>
+<div class="field"><label class="lbl" for="pwNew">كلمة المرور الجديدة</label><input type="password" id="pwNew" autocomplete="new-password" dir="ltr"></div>
 <div class="field"><label class="lbl" for="pwNew2">أعد كتابتها</label><input type="password" id="pwNew2" autocomplete="new-password" dir="ltr"></div>
 </form>
-<div class="ss-actions"><button class="btn primary" type="submit" form="pwForm">${has ? "تغيير كلمة المرور" : "حفظ كلمة المرور"}</button><span class="ss-status" id="pwStatus">6 أحرف على الأقل.</span></div>`;
+<div class="ss-actions"><button class="btn primary" type="submit" form="pwForm">${has ? "تغيير كلمة المرور" : "حفظ كلمة المرور"}</button><span class="ss-status" id="pwStatus">6 أحرف على الأقل.</span></div>
+</div></section>
+
+<section class="panel sys-panel"><header><h3>الأجهزة المسجّل دخولها</h3></header><div class="ss-body">
+<div class="dev-list">${r.sessions.map(x => { const d = device(x.ua); return `<div><span class="ic">${svg(d.mob ? '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>' : '<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 20h8"/>')}</span><div class="grow"><b>${esc(d.name)}</b><span>دخل ${esc(dt(x.created_at))}</span></div>${x.current ? `<span class="chip good">هذا الجهاز</span>` : ""}</div>`; }).join("") || `<div><div class="grow"><span>لا توجد أجهزة.</span></div></div>`}</div>
+${r.sessions.length > 1 ? `<div class="ss-actions"><button class="btn" type="button" id="endOthers">تسجيل الخروج من الأجهزة الأخرى</button></div>` : ""}
+</div></section>
+
+${mine.length ? `<section class="panel sys-panel"><header><h3>آخر عملياتي</h3></header><div class="ss-body"><div class="act-list">${mine.map(t => `<button type="button" data-my-tx="${esc(t.id)}"><div class="grow"><b>${t.type === "income" ? "سند قبض" : "سند صرف"} ${esc(vno(t))}${t.void ? ` <span class="chip bad">ملغى</span>` : ""}</b><span>${esc(t.category || "")}${t.party ? " · " + esc(t.party) : ""} · ${esc(gDate(t.date))}</span></div><span class="amt">${money(t.amount)}</span></button>`).join("")}</div></div></section>` : ""}`;
+
+    $("#profForm").onsubmit = async e => {
+      e.preventDefault();
+      const x = await appRpc("profile_update", { p_name: $("#pfName").value.trim(), p_email: $("#pfEmail").value.trim() || null });
+      if (x?.error) { say("pfStatus", "bad", ERR[x.error] || MSG.network); notify(ERR[x.error] || MSG.network, "bad"); return; }
+      say("pfStatus", "good", "حُفظت."); notify("حُفظت بياناتك", "good");
+      S.me.name = $("#pfName").value.trim(); paintWho(); if (S.isAdmin) loadMembers();
+    };
     $("#pwForm").onsubmit = async e => {
       e.preventDefault();
       const a = $("#pwNew").value, b = $("#pwNew2").value;
-      if (a.length < 6 || a.length > 64) return say("pwStatus", "bad", "كلمة المرور من 6 إلى 64 حرفًا.");
-      if (a !== b) return say("pwStatus", "bad", "الكلمتان غير متطابقتين.");
+      if (a.length < 6 || a.length > 64) { say("pwStatus", "bad", ERR.bad_password); return notify("رُفض تغيير كلمة المرور: " + ERR.bad_password, "bad"); }
+      if (a !== b) { say("pwStatus", "bad", "الكلمتان غير متطابقتين."); return notify("رُفض تغيير كلمة المرور: الكلمتان غير متطابقتين.", "bad"); }
       const btn = document.querySelector('[form="pwForm"]'); btn.disabled = true;
       const x = await appRpc("password_change", { p_new: a });
       btn.disabled = false;
-      if (x?.error) return say("pwStatus", "bad", x.error === "bad_password" ? "كلمة المرور من 6 إلى 64 حرفًا." : MSG.network);
-      toast("حُفظت كلمة المرور"); paintAccount();
+      if (x?.error) { say("pwStatus", "bad", ERR[x.error] || MSG.network); return notify("رُفض تغيير كلمة المرور: " + (ERR[x.error] || MSG.network), "bad"); }
+      notify("تم تغيير كلمة المرور. من الآن تدخل بها أو برمز واتساب.", "good"); paintAccount();
     };
+    $("#pfPhoneBtn").onclick = () => openPhoneChange(has);
+    const eo = $("#endOthers"); if (eo) eo.onclick = async () => {
+      if (!eo.classList.contains("armed")) { eo.classList.add("armed", "danger"); eo.textContent = "تأكيد الخروج من الأجهزة الأخرى"; return; }
+      const x = await appRpc("sessions_end_others");
+      if (x?.ok) { notify(`سُجّل الخروج من ${x.ended} ${x.ended === 1 ? "جهاز" : "أجهزة"}`, "good"); paintAccount(); } else notify("تعذّر تسجيل الخروج من الأجهزة الأخرى.", "bad");
+    };
+    body.querySelectorAll("[data-my-tx]").forEach(b => b.onclick = () => openVoucher(b.dataset.myTx));
   }
+  function openPhoneChange(has){
+    openModal(`<form id="phForm" novalidate><header><h3>تغيير رقم الجوال</h3>${closeBtn}</header>
+<div class="content"><div class="form-grid">
+<div class="field wide"><label for="phNew">الرقم الجديد</label><input type="tel" id="phNew" dir="ltr" style="text-align:right" placeholder="05XXXXXXXX" inputmode="numeric"></div>
+${has ? `<div class="field wide"><label for="phPw">كلمة المرور الحالية</label><input type="password" id="phPw" dir="ltr" autocomplete="current-password"></div>` : ""}
+</div><p class="c-sub">بعد التغيير تدخل بالرقم الجديد، وتنتقل له كل عهدك ومهامك. رموز واتساب توصل للرقم الجديد.</p><p class="err" id="phErr" hidden></p></div>
+<footer><button class="btn primary" type="submit">تغيير الرقم</button><button class="btn" type="button" data-close>إلغاء</button></footer></form>`, sheet => {
+      $("#phForm", sheet).onsubmit = async e => {
+        e.preventDefault(); const er = $("#phErr", sheet); er.hidden = true;
+        const x = await appRpc("phone_change", { p_new: $("#phNew", sheet).value, p_password: has ? $("#phPw", sheet).value : null });
+        if (x?.error) { er.textContent = ERR[x.error] || MSG.network; er.hidden = false; notify("رُفض تغيير الرقم: " + (ERR[x.error] || MSG.network), "bad"); return; }
+        S.phone = S.uid = x.phone; storeSet("halaqat.lastPhone", x.phone);
+        closeModal(); notify("تم تغيير رقمك إلى " + showPhone(x.phone), "good"); paintHeader(); paintAccount();
+      };
+    });
+  }
+
+  /* اسم المستخدم أسفل القائمة الجانبية بدل «مسجّل الدخول» */
+  function paintWho(){
+    const w = document.querySelector(".side-foot .who-me"); if (!w) return;
+    const lbl = w.querySelector(":scope > span"); const ph = $("#mePhone");
+    if (S.me?.name) { if (lbl) { lbl.textContent = S.me.name; lbl.className = "me-name"; } if (ph) { ph.dir = "rtl"; ph.textContent = (ROLE_NAME[S.me.role] || "") + " · " + showPhone(S.phone); } }
+  }
+  let whoAsked = false;
 
   /* الضغط على الشعار يرجع للرئيسية */
   const brandEl = document.querySelector(".side-brand");
@@ -136,6 +238,8 @@
   window.paintHeader = function(){
     prevPaint.apply(this, arguments);
     if (navSet) { navSet.hidden = false; navSet.setAttribute("aria-selected", S.view === "settings" ? "true" : "false"); }
+    if (S.phone && !whoAsked && window.appRpc) { whoAsked = true; appRpc("my_profile").then(r => { if (r?.ok) { S.me = r; paintWho(); } }); }
+    paintWho();
   };
 
   /* ---------- الهوية والمظهر ---------- */
