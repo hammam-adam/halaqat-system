@@ -135,7 +135,7 @@ canW()?`<div class="rowflex"><button class="btn primary" type="button" data-new=
 const views = {};
 views.summary = {
 shell(){ return `<div class="page">
-${pageHead("الملخص المالي", `الوضع المالي للمجمع حتى اليوم، وأرقام شهر ${monthLabel(thisMonth())}.`)}
+${pageHead("لوحة التحكم", `الوضع المالي للمجمع حتى اليوم، وأرقام شهر ${monthLabel(thisMonth())}.`)}
 <div class="kpis" id="kpis"></div>
 <div class="grid2">
 <section class="panel"><header><h3>الإيرادات والمصروفات</h3><span class="sub">آخر ستة أشهر</span></header><div class="body"><div id="chart6"></div></div></section>

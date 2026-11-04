@@ -1,0 +1,102 @@
+// واجهة الجوال: رأس أصغر، شريط سفلي بخمسة أزرار وقائمة «المزيد»، نوافذ تفتح من الأسفل، وصفحة دخول أنظف.
+(function(){
+  const css = document.createElement("style");
+  css.textContent = `
+@media (max-width:980px){
+  /* الرأس */
+  .side{padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))!important}
+  .side-brand{padding:0!important;gap:10px!important;align-items:center}
+  .side-brand .mark{width:30px!important}
+  .side-brand h1{font-size:15px!important;line-height:1.4!important}
+  .side-brand p{font-size:11.5px!important;line-height:1.4}
+  .work-inner{padding-top:14px!important;gap:18px!important}
+  .topbar{gap:10px!important;padding:10px 12px!important}
+  .today{flex:1 1 0!important;font-size:12.5px!important;line-height:1.55}
+  .today .cal{width:32px!important;height:32px!important;border-radius:9px}
+  .topbar .icon-only{padding:7px!important}
+  .actions{flex-basis:100%}
+  .actions .btn{flex:1;justify-content:center;padding:10px 12px}
+  .page-head h2{font-size:20px!important}
+  .page-head p{font-size:13px!important}
+
+  /* الشريط السفلي */
+  .nav button.m-over{display:none!important}
+  .nav{overflow:visible!important}
+  .nav button{min-width:0!important;font-size:11px!important}
+  #navMore{display:flex}
+  .m-more{position:fixed;inset:0;z-index:58;background:rgba(19,16,12,.35);display:flex;align-items:flex-end;direction:rtl}
+  .m-more .m-grid{width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:14px 14px calc(84px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;box-shadow:0 -12px 40px -12px rgba(0,0,0,.3)}
+  .m-more .m-grid h4{grid-column:1/-1;margin:2px 4px 6px;font-size:13px;color:var(--muted);font-weight:600}
+  .m-more button{position:relative;appearance:none;border:1px solid var(--line);background:var(--surface-2);border-radius:14px;padding:14px 6px;display:grid;justify-items:center;gap:6px;font:inherit;font-size:13px;color:var(--fg);cursor:pointer}
+  .m-more button svg.i{width:22px;height:22px;color:var(--brand)}
+  .m-more button.on{border-color:var(--brand);background:var(--brand-soft)}
+  .m-more button .badge{position:absolute;top:6px;inset-inline-end:8px;margin:0}
+  #navMore .mdot{position:absolute;top:6px;inset-inline-start:calc(50% + 6px);width:8px;height:8px;border-radius:50%;background:#efe3cf}
+
+  /* النوافذ: تفتح من أسفل الشاشة وفوق الشريط، وزر الحفظ ظاهر دائمًا */
+  .scrim{z-index:70!important;align-items:end!important;place-items:end center!important;padding:0!important;padding-top:max(24px,env(safe-area-inset-top,0px))!important}
+  .sheet{width:100%!important;max-height:calc(100dvh - max(24px,env(safe-area-inset-top,0px)))!important;border-radius:20px 20px 0 0!important;border-bottom:0!important;display:flex;flex-direction:column}
+  .sheet>form{display:flex;flex-direction:column;min-height:0}
+  .sheet>header,.sheet form>header{padding:14px 16px!important}
+  .sheet .content{padding:16px!important}
+  .sheet footer{position:sticky;bottom:0;z-index:1;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))!important}
+  .sheet footer .btn.primary{flex:1;justify-content:center;padding:11px 16px}
+  .toast{bottom:calc(86px + env(safe-area-inset-bottom,0px))!important;max-width:calc(100vw - 32px);text-align:center}
+
+  /* منع تكبير iOS عند الكتابة */
+  input,select,textarea{font-size:16px!important}
+}
+@media (max-width:860px){
+  .auth-wrap{grid-template-rows:max-content 1fr!important}
+  .auth-art{flex-direction:column!important;gap:10px!important;padding:calc(28px + env(safe-area-inset-top,0px)) 20px 26px!important;text-align:center!important;overflow:visible!important}
+  .auth-art .mark{width:46px!important}
+  .auth-art h1{font-size:19px!important;margin:0!important}
+  .auth-main{padding:18px 16px 28px!important}
+  .auth-box{padding:22px 18px!important;gap:18px!important;border-radius:18px!important}
+  .auth-box h2{font-size:21px!important}
+  .pw-wrap{position:relative}
+  .pw-wrap #pwIn{width:100%;padding-inline-end:76px}
+  .pw-wrap #pwEye{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);background:var(--surface-2);border-radius:8px}
+}`;
+  document.head.appendChild(css);
+
+  const mq = matchMedia("(max-width:980px)");
+  const nav = document.querySelector(".nav");
+  if (!nav) return;
+  const more = document.createElement("button");
+  more.type = "button"; more.id = "navMore"; more.hidden = true;
+  more.innerHTML = `<svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>المزيد<span class="mdot" hidden></span>`;
+  nav.appendChild(more);
+  const MAX = 5;
+  const items = () => [...nav.querySelectorAll("button[data-view]")].filter(b => !b.hidden);
+  let busy = false;
+  function lay(){
+    if (busy) return; busy = true;
+    const all = items();
+    const over = mq.matches && all.length > MAX ? all.slice(MAX - 1) : [];
+    all.forEach(b => b.classList.toggle("m-over", over.includes(b)));
+    if (more.hidden !== !over.length) more.hidden = !over.length;
+    const sel = over.some(b => b.getAttribute("aria-selected") === "true") ? "true" : "false";
+    if (more.getAttribute("aria-selected") !== sel) more.setAttribute("aria-selected", sel);
+    const dot = more.querySelector(".mdot"), dh = !over.some(b => { const x = b.querySelector(".badge"); return x && !x.hidden && x.textContent.trim() && x.textContent.trim() !== "0"; });
+    if (dot.hidden !== dh) dot.hidden = dh;
+    busy = false;
+  }
+  function close(){ document.querySelector(".m-more")?.remove(); }
+  more.onclick = () => {
+    if (document.querySelector(".m-more")) return close();
+    const over = items().filter(b => b.classList.contains("m-over"));
+    const box = document.createElement("div"); box.className = "m-more";
+    box.innerHTML = `<div class="m-grid"><h4>باقي الأقسام</h4>${over.map((b, i) => {
+      const c = b.cloneNode(true); c.removeAttribute("id"); c.removeAttribute("role"); c.classList.remove("m-over");
+      c.className = b.getAttribute("aria-selected") === "true" ? "on" : ""; c.dataset.i = i; c.removeAttribute("data-view");
+      return c.outerHTML; }).join("")}</div>`;
+    box.onclick = e => { const t = e.target.closest("button[data-i]"); if (t) { close(); over[+t.dataset.i].click(); } else if (e.target === box) close(); };
+    document.body.appendChild(box);
+  };
+  nav.addEventListener("click", e => { if (e.target.closest("button[data-view]")) close(); });
+  new MutationObserver(recs => { if (recs.some(r => !more.contains(r.target))) lay(); }).observe(nav, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden", "aria-selected"], characterData: true });
+  mq.addEventListener ? mq.addEventListener("change", lay) : mq.addListener(lay);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  lay();
+})();
