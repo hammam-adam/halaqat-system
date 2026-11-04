@@ -56,6 +56,12 @@
     : ERR[r?.error] || ERR.network;
   const nameOf = ph => C.holders.find(h => h.phone === ph)?.name || (ph === C.me?.phone ? C.me.name : "") || showPhone(ph);
   const needsMe = c => mgr() ? (c.status === "requested" || c.status === "submitted") : c.status === "open";
+  ATTN.push(() => {
+    if (!C.loaded || !mgr()) return [];
+    const req = C.list.filter(c => c.status === "requested").length, sub = C.list.filter(c => c.status === "submitted").length;
+    const parts = [req ? `${req} طلب عهدة ينتظر الاعتماد` : "", sub ? `${sub} تصفية تنتظر المراجعة` : ""].filter(Boolean);
+    return parts.length ? [{ key: `cu-${req}-${sub}`, tone: "warn", text: parts.join("، ") + ".", go: () => show("custody") }] : [];
+  });
 
   const css = document.createElement("style");
   css.textContent = `
@@ -99,7 +105,7 @@
     if (!r?.ok) return;
     const first = !C.loaded;
     if (first && !C.tab) C.tab = r.me.role === "admin" ? "all" : "action";
-    C.me = r.me; C.list = r.custodies; C.holders = r.holders; C.loaded = true;
+    C.me = r.me; C.list = r.custodies; C.holders = r.holders; C.loaded = true; window.paintAttn?.();
     // the page title and buttons depend on the role, known only after the first load
     if (S.view === "custody" && $("#cBody")) { if (first) show("custody"); else views.custody.fill(); }
     paintHeader();

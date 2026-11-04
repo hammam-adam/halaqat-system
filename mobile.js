@@ -28,7 +28,9 @@
   .side-brand p{font-size:11.5px!important;line-height:1.4}
   .work-inner{padding-top:14px!important;gap:18px!important}
   .topbar{gap:10px!important;padding:10px 12px!important}
-  .today{flex:1 1 0!important;font-size:12.5px!important;line-height:1.55}
+  .today{flex:1 1 0!important;font-size:13px!important;line-height:1.5;white-space:nowrap;overflow:hidden}
+  .today #today{overflow:hidden;text-overflow:ellipsis}
+  .today .greg{display:none}
   .today .cal{width:32px!important;height:32px!important;border-radius:9px}
   .topbar .icon-only{padding:7px!important}
   /* أزرار العهد موجودة داخل صفحة العهد، فلا داعي لتكرارها أعلى كل صفحة على الجوال */

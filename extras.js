@@ -18,7 +18,7 @@ html body{font-size:15.5px}
 .q-periods .btn{padding:5px 11px}
 .q-periods .btn[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
 .part-box{display:grid;gap:8px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);border-radius:12px;background:var(--warn-bg)}
-.tx-words{display:block;margin-top:4px;font-size:12.5px;color:var(--muted);line-height:1.6;min-height:1.6em}`;
+.tx-words{display:block;margin-top:4px;font-size:12.5px;color:var(--muted);line-height:1.6}.tx-words:empty{display:none}`;
   document.head.appendChild(css);
 
   /* ---------- interface polish: motion, hover states, sticky sheet header and footer ---------- */
@@ -80,9 +80,6 @@ tr.click,tr[data-c-open]{cursor:pointer}
   views.teachers.shell = function(){
     const c = counts(), tabs = [["all", "الكل"], ["teacher", "المعلمون"], ["supervisor", "المشرفون"]];
     return baseShell.call(this)
-      .replace("المعلمون ومكافآتهم", "مكافآت المعلمين والمشرفين")
-      .replace("مكافأة كل معلم الشهرية وحالة صرفها.", "المكافأة الشهرية لكل معلم ومشرف وحالة صرفها.")
-      .replace(`${ICON.plus}معلم جديد`, `${ICON.plus}إضافة معلم أو مشرف`)
       .replace(`<div class="cards" id="tcList"></div>`, `<div class="rw-bar"><div class="seg" id="rwRole">${tabs.map(([k, t]) =>
         `<button type="button" data-role="${k}" aria-pressed="${S.teach.role === k}">${t} <span class="sub">${c[k]}</span></button>`).join("")}</div>
 <input type="search" id="rwQ" placeholder="بحث بالاسم أو الجوال" value="${esc(S.teach.q)}"></div>

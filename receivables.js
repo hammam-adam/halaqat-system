@@ -18,8 +18,6 @@
 .rv .acts a.btn{text-decoration:none}
 .rv .bar{grid-column:1/-1;height:5px;border-radius:5px;background:var(--surface-2);overflow:hidden}
 .rv .bar i{display:block;height:100%;background:var(--good)}
-.rv-sum{display:flex;align-items:center;gap:12px;padding:12px 16px;margin-bottom:14px;border:1px solid var(--line);border-radius:var(--r,14px);background:var(--surface);cursor:pointer}
-.rv-sum b{color:var(--brand)}.rv-sum .grow{flex:1;min-width:0;font-size:14px;line-height:1.7}
 .rv-pays{display:grid;gap:6px;margin-top:4px}
 .rv-pays button{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);font:inherit;font-size:13px;color:inherit;cursor:pointer;text-align:start}`;
   document.head.appendChild(css);
@@ -71,7 +69,7 @@
   const prevPaint = window.paintHeader;
   window.paintHeader = function(){
     prevPaint.apply(this, arguments);
-    if (S.db && !R.sub) { R.sub = true; S.db.collection(COL).onSnapshot(s => { R.list = s.docs.map(d => ({ id: d.id, ...d.data() })); paintBadge(); if ($("#rvBody")) views.receivables.fill(); if (S.view === "summary") paintSummary(); }); }
+    if (S.db && !R.sub) { R.sub = true; S.db.collection(COL).onSnapshot(s => { R.list = s.docs.map(d => ({ id: d.id, ...d.data() })); paintBadge(); if ($("#rvBody")) views.receivables.fill(); if (S.view === "summary") paintAttn(); }); }
     paintBadge();
   };
   function paintBadge(){
@@ -81,17 +79,14 @@
     if (bf && late) { bf.textContent = nf + late; bf.hidden = false; bf.title = `${nf} طالب لم يكمل رسومه، و${late} مستحق متأخر`; }
   }
 
-  /* الملخص: سطر بإجمالي المستحقات (خارج الرصيد) */
-  function paintSummary(){
-    const k = $("#kpis"); if (!k) return;
-    $("#rvSum")?.remove();
-    const open = R.list.filter(isOpen); if (!open.length) return;
-    const late = open.filter(isLate).length;
-    k.insertAdjacentHTML("afterend", `<div class="rv-sum" id="rvSum" role="button" tabindex="0"><i class="kicon">${ICO}</i><div class="grow">لك مستحقات بقيمة <b>${money(sum(open, restOf))}</b> عند ${open.length} ${open.length === 1 ? "جهة" : "جهات"}${late ? ` · <span style="color:var(--bad)">${late} متأخرة</span>` : ""}. لا تدخل في الرصيد حتى تُستلم.</div><span class="btn sm">عرض</span></div>`);
-    $("#rvSum").onclick = () => { show("receivables"); window.scrollTo({ top: 0 }); };
-  }
-  const sumFill = views.summary.fill;
-  views.summary.fill = function(){ sumFill.apply(this, arguments); paintSummary(); };
+  /* الرئيسية: المستحقات ضمن «يحتاج انتباهك» */
+  ATTN.push(() => {
+    const open = R.list.filter(isOpen); if (!open.length) return [];
+    const late = open.filter(isLate);
+    return [late.length
+      ? { key: "rv-late-" + thisMonth(), tone: "bad", text: `${late.length} ${late.length > 2 && late.length < 11 ? "مستحقات متأخرة" : "مستحق متأخر"} بقيمة <b>${money(sum(late, restOf))}</b>، من أصل ${money(sum(open, restOf))} لك عند الآخرين.`, go: () => show("receivables") }
+      : { key: "rv-" + thisMonth(), tone: "info", text: `لك مستحقات بقيمة <b>${money(sum(open, restOf))}</b> عند ${open.length} ${open.length === 1 ? "جهة" : "جهات"}، ولا تدخل في الرصيد حتى تُستلم.`, go: () => show("receivables") }];
+  });
 
   /* الصفحة */
   views.receivables = {

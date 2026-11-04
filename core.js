@@ -96,7 +96,7 @@ function paintHeader(){
 const org = S.settings.orgName?.trim();
 $("#orgName").textContent = org || DEFAULT_ORG;
 const t = todayISO();
-$("#today").innerHTML = `<b>${esc(weekday(t))} ${esc(hijri(t))} هـ</b> · ${esc(gDate(t))} م`;
+$("#today").innerHTML = `<b>${esc(weekday(t))} ${esc(hijri(t))} هـ</b><span class="greg"> · ${esc(gDate(t))} م</span>`;
 $("#topActions").hidden = !canW();
 $("#sampleBanner").hidden = !(canW() && [...S.tx,...S.students,...S.halaqat,...S.teachers].some(d=>d.sample));
 document.querySelectorAll(".nav button").forEach(b=>b.setAttribute("aria-selected", b.dataset.view===S.view ? "true":"false"));
@@ -105,12 +105,54 @@ if(S.phone) $("#mePhone").textContent = showPhone(S.phone);
 if(S.db){
 const m=thisMonth();
 const nFees = feeRows(m,"all").filter(r=>r.fee>0&&r.paid<r.fee).length;
-const nTc = S.teachers.filter(x=>x.active!==false && (+x.monthlyReward||0)>rewardPaid(x.id,m)).length;
+const nTc = rewardDue() ? S.teachers.filter(x=>x.active!==false && (+x.monthlyReward||0)>rewardPaid(x.id,m)).length : 0;
 const bf=$("#bFees"), bt=$("#bTc");
 bf.textContent=nFees; bf.hidden=!nFees; bf.title=`${nFees} طالب لم يكمل رسوم ${monthName(m)}`;
 bt.textContent=nTc; bt.hidden=!nTc; bt.title=`${nTc} معلم لم يستلم مكافأة ${monthName(m)}`;
 }
 }
+/* تنبيه صرف المكافآت يبدأ من يوم محدد في الشهر (الافتراضي ٢٠) */
+const rewardDay = () => Math.min(28, Math.max(1, Math.round(+S.settings?.rewardRemindDay || 20)));
+const rewardDue = () => new Date().getDate() >= rewardDay();
+function paintRemindDay(){
+const el=$("#remindDay"); if(!el) return;
+const d=rewardDay();
+el.innerHTML = canW()
+? `تنبيهات صرف المكافآت تبدأ يوم <select id="rdSel" aria-label="يوم بدء التنبيه">${[...Array(28)].map((_,i)=>`<option${i+1===d?" selected":""}>${i+1}</option>`).join("")}</select> من كل شهر.`
+: `تنبيهات صرف المكافآت تبدأ يوم ${d} من كل شهر.`;
+const sel=$("#rdSel"); if(sel) sel.onchange=()=>write(()=>S.db.doc("settings/main").update({rewardRemindDay:+sel.value}), `صارت تنبيهات المكافآت تبدأ يوم ${sel.value}`);
+}
+
+/* «يحتاج انتباهك» في الرئيسية: كل وحدة تضيف مصدرًا يرجّع عناصر {key, tone, text, go} */
+window.ATTN = window.ATTN || [];
+const ATTN_KEY = "halaqat.attnHide";
+let attnAll = false;
+const attnHidden = () => { try { return JSON.parse(localStorage.getItem(ATTN_KEY) || "[]"); } catch(e){ return []; } };
+function paintAttn(){
+const host=$("#attn"); if(!host) return;
+const hid=attnHidden();
+const items=ATTN.flatMap(f=>{ try{ return f()||[]; }catch(e){ return []; } }).filter(i=>!hid.includes(i.key));
+if(!items.length){ host.innerHTML=""; return; }
+const shown = attnAll ? items : items.slice(0,3);
+host.innerHTML = `<section class="attn"><header><h3>يحتاج انتباهك</h3><span class="sub">${items.length}</span></header>
+${shown.map((x,i)=>`<div class="attn-row ${x.tone||""}"><i></i><p>${x.text}</p>${x.go?`<button class="btn sm" type="button" data-attn-go="${i}">عرض</button>`:""}<button class="btn ghost sm icon-only" type="button" data-attn-x="${esc(x.key)}" aria-label="إخفاء" title="إخفاء">✕</button></div>`).join("")}
+${items.length>3?`<button class="attn-more" type="button" data-attn-more>${attnAll?"إظهار أقل":`إظهار المزيد (${items.length-3})`}</button>`:""}</section>`;
+host.querySelectorAll("[data-attn-go]").forEach(b=>b.onclick=()=>shown[+b.dataset.attnGo].go());
+host.querySelectorAll("[data-attn-x]").forEach(b=>b.onclick=()=>{ const l=attnHidden(); l.unshift(b.dataset.attnX); try{ localStorage.setItem(ATTN_KEY, JSON.stringify(l.slice(0,60))); }catch(e){} paintAttn(); });
+const more=host.querySelector("[data-attn-more]"); if(more) more.onclick=()=>{ attnAll=!attnAll; paintAttn(); };
+}
+window.paintAttn = paintAttn;
+ATTN.push(()=>{
+const L=live(), m=thisMonth(), out=[];
+const bal=sum(L.filter(t=>t.type==="income"))-sum(L.filter(t=>t.type==="expense"));
+if(bal<0) out.push({key:"neg-"+m, tone:"bad", text:`الرصيد بالسالب <b>${money(bal)}</b>: المصروفات المسجّلة أكثر من المقبوضات.`, go:()=>show("ledger")});
+const tcs=S.teachers.filter(x=>x.active!==false && (+x.monthlyReward||0)>rewardPaid(x.id,m));
+if(rewardDue() && tcs.length) out.push({key:"rw-"+m, tone:"warn", text:`${tcs.length} ${tcs.length>2&&tcs.length<11?"معلمين":"معلم"} لم تُصرف مكافأة ${monthName(m)} بإجمالي <b>${money(sum(tcs,x=>(+x.monthlyReward||0)-rewardPaid(x.id,m)))}</b>.`, go:()=>show("teachers")});
+const fees=feeRows(m,"all").filter(r=>r.fee>0&&r.paid<r.fee);
+if(fees.length) out.push({key:"fee-"+m, tone:"info", text:`${fees.length} ${fees.length>2&&fees.length<11?"طلاب":"طالب"} لم يكملوا رسوم ${monthName(m)} بإجمالي <b>${money(sum(fees,r=>r.fee-r.paid))}</b>.`, go:()=>show("fees")});
+return out;
+});
+
 const txSort = (a,b)=> (b.date||"").localeCompare(a.date||"") || (b.createdAt||"").localeCompare(a.createdAt||"");
 function txRow(t){
 const isInc = t.type==="income";
@@ -137,6 +179,8 @@ views.summary = {
 shell(){ return `<div class="page">
 ${pageHead("لوحة التحكم", `الوضع المالي للمجمع حتى اليوم، وأرقام شهر ${monthLabel(thisMonth())}.`)}
 <div class="kpis" id="kpis"></div>
+<div id="attn"></div>
+${canW()?`<div class="quick"><button class="quick-btn inc" type="button" data-new="income">${ICON.inc}<span><b>سند قبض</b><small>رسوم، تبرع، كفالة</small></span></button><button class="quick-btn exp" type="button" data-new="expense">${ICON.exp}<span><b>سند صرف</b><small>مكافأة، مشتريات، صيانة</small></span></button></div>`:""}
 <div class="grid2">
 <section class="panel"><header><h3>الإيرادات والمصروفات</h3><span class="sub">آخر ستة أشهر</span></header><div class="body"><div id="chart6"></div></div></section>
 <section class="panel"><header><h3>مصروفات الشهر حسب البند</h3><span class="sub">${monthLabel(thisMonth())}</span></header><div class="body" id="expCats"></div></section>
@@ -161,6 +205,7 @@ const cats = catsOf(EXPENSE_CATS, mE).map(c=>({c, v:sum(mE.filter(t=>t.category=
 const max = Math.max(1,...cats.map(x=>x.v)), tot=sum(cats,x=>x.v);
 $("#expCats").innerHTML = cats.length ? `<div class="bars">${cats.map(x=>`<div class="bar-row"><div class="meta"><span>${esc(x.c)}</span><span><span class="num">${money(x.v)}</span> <span class="sub">${Math.round(x.v/tot*100)}%</span></span></div><div class="bar-track"><div class="bar-fill" style="width:${(x.v/max*100).toFixed(1)}%"></div></div></div>`).join("")}</div>`
 : `<div class="empty" style="padding:24px 0"><span>لم تُسجَّل مصروفات هذا الشهر بعد.</span></div>`;
+paintAttn();
 const rec = [...S.tx].sort(txSort).slice(0,6);
 $("#recent").innerHTML = rec.length ? txTable(rec) : emptyTx();
 }
@@ -315,15 +360,16 @@ return `<tr${canW()?` class="click" data-edit-hal="${esc(h.id)}" tabindex="0"`:"
 }
 views.teachers = {
 shell(){ return `<div class="page">
-${pageHead("المعلمون ومكافآتهم","مكافأة كل معلم الشهرية وحالة صرفها. الصرف يُسجَّل سند صرف تحت بند «رواتب ومكافآت المعلمين».",
-`<div class="rowflex"><input type="month" id="tMonth" value="${esc(S.teach.month)}" aria-label="الشهر" style="width:auto">${canW()?`<button class="btn primary" type="button" id="addTc">${ICON.plus}معلم جديد</button>`:""}</div>`)}
+${pageHead("مكافآت المعلمين والمشرفين","المكافأة الشهرية لكل معلم ومشرف وحالة صرفها. الصرف يُسجَّل سند صرف تحت بند «رواتب ومكافآت المعلمين».",
+`<div class="rowflex"><input type="month" id="tMonth" value="${esc(S.teach.month)}" aria-label="الشهر" style="width:auto">${canW()?`<button class="btn primary icon-only" type="button" id="addTc" title="إضافة معلم أو مشرف" aria-label="إضافة معلم أو مشرف">${ICON.plus}</button>`:""}</div>`)}
 <div class="kpis" id="tcKpis"></div>
 <div id="bulkBar"></div>
 <div class="cards" id="tcList"></div>
 <div class="sec-head"><h3>الحلقات</h3>${canW()?`<button class="btn" type="button" id="addHal">${ICON.plus}حلقة جديدة</button>`:""}</div>
-<section class="panel" id="halList"></section></div>`; },
+<section class="panel" id="halList"></section>
+<p class="remind-day" id="remindDay"></p></div>`; },
 fill(){
-$("#halList").innerHTML = halTable();
+$("#halList").innerHTML = halTable(); paintRemindDay();
 const m=S.teach.month, rows=teacherRows(m);
 const due=sum(rows,r=>r.reward), paid=sum(rows,r=>r.paid), rest=sum(rows,r=>Math.max(0,r.reward-r.paid));
 const active=S.teachers.filter(x=>x.active!==false), noHal=active.filter(x=>!teacherHalaqat(x.id).length).length;
@@ -503,25 +549,27 @@ const nextNo = editing ? editing.no : 1 + Math.max(0,...S.tx.filter(x=>x.type===
 openModal(`<form id="txForm" novalidate><header><span class="ico ${isInc?"inc":"exp"}">${isInc?ICON.inc:ICON.exp}</span><h3>${editing?"تعديل ":""}${isInc?"سند قبض":"سند صرف"} <span class="vno">${vno({type:t.type,no:nextNo})}</span></h3>${closeBtn}</header>
 <div class="content"><div class="form-grid">
 <div class="field"><label for="txAmount">المبلغ (ر.س)</label><input type="number" id="txAmount" min="0.01" step="0.01" inputmode="decimal" value="${t.amount??""}" required></div>
-<div class="field"><label for="txDate">التاريخ</label><input type="date" id="txDate" value="${esc(t.date)}" required><span class="sub" id="txHijri">${hijri(t.date)} هـ</span></div>
 <div class="field"><label for="txCat">البند</label><select id="txCat">${cats.map(c=>`<option${c===t.category?" selected":""}>${esc(c)}</option>`).join("")}</select></div>
 <div class="field" id="catOtherW"><label for="txCatOther">حدّد النوع</label><input type="text" id="txCatOther" value="${esc(t.catOther||"")}" placeholder="${isInc?"مثال: تبرع عيني":"مثال: صيانة مكيفات"}"></div>
-<div class="field"><label for="txMethod">طريقة الدفع</label><select id="txMethod">${Object.entries(METHODS).map(([k,v])=>`<option value="${k}"${k===t.method?" selected":""}>${v}</option>`).join("")}</select></div>
+<div class="field wide" id="partyWrap"><label for="txParty">${isInc?"استلمنا من":"صرفنا إلى"}</label><input type="text" id="txParty" value="${esc(t.party||"")}" placeholder="${isInc?"اسم الدافع أو ولي الأمر":"اسم المستلم أو الجهة"}"></div>
 ${isInc?"":`<div class="field" id="tcWrap"><label for="txTeacher">المعلم</label><select id="txTeacher"><option value="">— اختر المعلم —</option>${S.teachers.filter(x=>x.active!==false||x.id===t.teacherId).map(x=>`<option value="${esc(x.id)}"${x.id===t.teacherId?" selected":""}>${esc(x.name)}</option>`).join("")}</select></div>
 <div class="field" id="rmWrap"><label for="txRewardMonth">المكافأة عن شهر</label><input type="month" id="txRewardMonth" value="${esc(t.rewardMonth||thisMonth())}"></div>`}
-<div class="field"><label for="txHal">الحلقة <span class="sub">(اختياري)</span></label><select id="txHal"><option value="">— غير مرتبط —</option>${S.halaqat.map(h=>`<option value="${esc(h.id)}"${h.id===t.halaqaId?" selected":""}>${esc(h.name)}</option>`).join("")}</select></div>
-${isInc?`<div class="field"><label for="txStudent">الطالب <span class="sub">(اختياري)</span></label><select id="txStudent"></select></div>
+${isInc?`<div class="field" id="stWrap"><label for="txStudent">الطالب <span class="sub">(اختياري)</span></label><select id="txStudent"></select></div>
 <div class="field" id="feeMonthWrap"><label for="txFeeMonth">الرسوم عن شهر</label><input type="month" id="txFeeMonth" value="${esc(t.feeMonth||thisMonth())}"></div>`:""}
-<div class="field ${isInc?"":"wide"}" id="partyWrap"><label for="txParty">${isInc?"استلمنا من":"صرفنا إلى"}</label><input type="text" id="txParty" value="${esc(t.party||"")}" placeholder="${isInc?"اسم الدافع أو ولي الأمر":"اسم المستلم أو الجهة"}"></div>
+</div>
+<details class="more-fields"${editing&&(t.halaqaId||t.studentId||t.note||t.method!=="cash")?" open":""}><summary>تفاصيل إضافية <span class="sub">التاريخ، طريقة الدفع، الحلقة، البيان</span></summary><div class="form-grid">
+<div class="field"><label for="txDate">التاريخ</label><input type="date" id="txDate" value="${esc(t.date)}" required><span class="sub" id="txHijri">${hijri(t.date)} هـ</span></div>
+<div class="field"><label for="txMethod">طريقة الدفع</label><select id="txMethod">${Object.entries(METHODS).map(([k,v])=>`<option value="${k}"${k===t.method?" selected":""}>${v}</option>`).join("")}</select></div>
+<div class="field"><label for="txHal">الحلقة <span class="sub">(اختياري)</span></label><select id="txHal"><option value="">— غير مرتبط —</option>${S.halaqat.map(h=>`<option value="${esc(h.id)}"${h.id===t.halaqaId?" selected":""}>${esc(h.name)}</option>`).join("")}</select></div>
 <div class="field wide"><label for="txNote">البيان / ملاحظات</label><textarea id="txNote" rows="2">${esc(t.note||"")}</textarea></div>
-</div><p class="err" id="txErr" hidden></p></div>
+</div></details><p class="err" id="txErr" hidden></p></div>
 <footer><button class="btn ${isInc?"inc":"primary"}" type="submit">${editing?"حفظ التعديل":"حفظ السند"}</button><button class="btn" type="button" data-close>إلغاء</button></footer></form>`, sheet=>{
 const cat=$("#txCat",sheet), hal=$("#txHal",sheet), stSel=$("#txStudent",sheet), fmw=$("#feeMonthWrap",sheet);
 const tcSel=$("#txTeacher",sheet), tcw=$("#tcWrap",sheet), rmw=$("#rmWrap",sheet), party=$("#txParty",sheet), amt=$("#txAmount",sheet);
 const syncStudents = () => { if(!stSel) return; const cur = stSel.value || t.studentId || "";
 const list = S.students.filter(s=>(s.active!==false||s.id===cur) && (!hal.value||s.halaqaId===hal.value));
 stSel.innerHTML = `<option value="">— بدون طالب —</option>` + list.map(s=>`<option value="${esc(s.id)}"${s.id===cur?" selected":""}>${esc(s.name)}</option>`).join(""); };
-const syncCat = () => { $("#catOtherW",sheet).hidden = cat.value!=="أخرى"; if(fmw) fmw.hidden = cat.value!==FEE_CAT; if(tcw){ tcw.hidden = rmw.hidden = cat.value!==REWARD_CAT; } };
+const syncCat = () => { $("#catOtherW",sheet).hidden = cat.value!=="أخرى"; if(fmw) fmw.hidden = $("#stWrap",sheet).hidden = cat.value!==FEE_CAT; if(tcw){ tcw.hidden = rmw.hidden = cat.value!==REWARD_CAT; } };
 const suggestSt = () => { if(!stSel || editing) return; const s=studentById(stSel.value); if(!s) return;
 if(!party.value) party.value = s.guardian || s.name;
 if(s.halaqaId && !hal.value) hal.value=s.halaqaId;
