@@ -162,9 +162,9 @@ const title = t.party || st || tc || t.category;
 const sub = [st && st!==title ? st : "", forMonth ? `عن ${monthLabel(forMonth)}` : "", t.note].filter(Boolean).join(" · ");
 return `<tr class="click${t.void?" void":""}" data-tx="${esc(t.id)}" tabindex="0">
 <td data-label="رقم السند" class="hide-m"><span class="vno">${vno(t)}</span></td>
-<td class="main"><div class="who"><span class="ico ${isInc?"inc":"exp"}">${isInc?ICON.inc:ICON.exp}</span><div style="min-width:0"><div class="title">${esc(title)}</div>${sub?`<span class="sub">${esc(sub)}</span>`:`<span class="sub vno">${vno(t)}</span>`}</div></div></td>
-<td data-label="التاريخ" class="date num">${esc(gDate(t.date))}<small>${esc(hijri(t.date))} هـ</small></td>
-<td data-label="البند">${catTag(t.category)}${t.catOther?`<div class="sub">${esc(t.catOther)}</div>`:""}</td>
+<td class="main"><div class="who"><span class="ico ${isInc?"inc":"exp"}">${isInc?ICON.inc:ICON.exp}</span><div style="min-width:0"><div class="title">${esc(title)}</div>${sub?`<span class="sub">${esc(sub)}</span>`:`<span class="sub vno">${vno(t)}</span>`}<span class="m-meta">${esc(gDate(t.date))} · ${esc(t.catOther||t.category||"")}</span></div></div></td>
+<td data-label="التاريخ" class="date num m-hide">${esc(gDate(t.date))}<small>${esc(hijri(t.date))} هـ</small></td>
+<td data-label="البند" class="m-hide">${catTag(t.category)}${t.catOther?`<div class="sub">${esc(t.catOther)}</div>`:""}</td>
 <td data-label="الحلقة" class="hide-m">${esc(halaqaName(t.halaqaId))||`<span class="sub">عام</span>`}</td>
 <td data-label="الدفع" class="hide-m">${esc(METHODS[t.method]||"")}</td>
 <td data-label="المبلغ" class="n"><span class="amount ${isInc?"inc":"exp"}">${mh(t.amount)}</span>${t.void?` <span class="chip bad">ملغى</span>`:""}</td></tr>`;
@@ -489,7 +489,7 @@ bind(){
 $("#addMember").onclick=openMember;
 $("#memberList").addEventListener("click", async e=>{
 const b=e.target.closest("[data-del-member]"); if(!b) return;
-if(!b.classList.contains("armed")){ b.classList.add("armed"); b.textContent="تأكيد الإزالة"; return; }
+if(!b.classList.contains("armed")){ b.classList.add("armed","danger"); b.classList.remove("icon-only","ghost"); b.textContent="تأكيد الإزالة"; return; }
 b.disabled=true;
 const {error}=await SB.from("members").delete().eq("phone",b.dataset.delMember);
 if(error){ toast("تعذّرت الإزالة. أعد المحاولة."); b.disabled=false; } else { toast("أُزيل المستخدم"); loadMembers(); }

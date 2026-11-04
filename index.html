@@ -268,6 +268,17 @@ tfoot td{font-weight:700;border-top:2px solid var(--fg);border-bottom:0;font-siz
 .attn-row p{flex:1;min-width:0;margin:0;font-size:14px;line-height:1.7}
 .attn-row .icon-only{color:var(--muted);padding:4px 8px}
 .attn-more{display:block;width:100%;padding:10px;border:0;border-top:1px solid var(--line);background:var(--surface-2);color:var(--brand);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.m-meta{display:none}
+/* المستخدمون */
+.u-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;padding:12px}
+.u-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);cursor:pointer;transition:border-color .12s,background .12s}
+.u-card:hover{border-color:var(--line-strong);background:var(--surface-2)}
+.u-card .grow{flex:1;min-width:0;display:grid;gap:3px}
+.u-name{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:12.5px;color:var(--muted)}
+.u-phone{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.u-pw{font-size:12px}
+.u-del{color:var(--muted)}.u-del:hover{color:var(--bad)}
 .quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .quick-btn{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;text-align:start;cursor:pointer;transition:border-color .12s,background .12s}
 .quick-btn svg.i{width:22px;height:22px;padding:9px;box-sizing:content-box;border-radius:11px;color:var(--tone);background:color-mix(in srgb,var(--tone) 12%,transparent)}

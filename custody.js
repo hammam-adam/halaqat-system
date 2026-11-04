@@ -420,16 +420,14 @@ ${addForm}${actions}${canEdit ? `<p class="c-sub">${fresh ? "«تصفية جزئ
   views.users.fill = function(){
     const me = S.phone, order = { admin: 0, accountant: 1, staff: 2, tech: 3, custodian: 4 };
     $("#memberList").innerHTML = !S.members.length ? empty(ICON.users, "لا يوجد مستخدمون", "أضف أرقام المحاسب والإداريين.") :
-`<div class="tbl"><table class="dt"><thead><tr><th>الاسم</th><th>الجوال</th><th>الصلاحية</th><th class="n">رصيد الصلاحية</th><th>كلمة المرور</th><th></th></tr></thead><tbody>
-${S.members.slice().sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9) || (a.name || "").localeCompare(b.name || "", "ar")).map(m => `<tr class="click" data-edit-member="${esc(m.phone)}" tabindex="0">
-<td class="main"><div class="who"><span class="avatar">${esc(initial(m.name || "؟"))}</span><div class="title">${esc(m.name || "بدون اسم")}${m.phone === me ? ` <span class="tag">أنت</span>` : ""}</div></div></td>
-<td data-label="الجوال" class="num" dir="ltr" style="text-align:right">${esc(showPhone(m.phone))}</td>
-<td data-label="الصلاحية"><span class="chip ${ROLE_CHIP[m.role] || "mute"}">${ROLE_LABEL[m.role] || m.role}</span>${m.title ? `<div class="sub">${esc(m.title)}</div>` : ""}</td>
-<td data-label="رصيد الصلاحية" class="n">${m.role === "accountant" ? money(m.budget) : `<span class="sub">—</span>`}</td>
-<td data-label="كلمة المرور">${m.init_password ? `<span class="pw-init" title="وضعها المدير، وتختفي إذا غيّرها المستخدم"><code>${esc(m.init_password)}</code></span>` : m.has_password ? `<span class="chip good">خاصة بالمستخدم</span>` : `<span class="sub">لا توجد</span>`}</td>
-<td data-label="" class="n">${m.phone === me ? "" : `<button class="btn sm danger" type="button" data-del-member="${esc(m.phone)}">إزالة</button>`}</td></tr>`).join("")}
-</tbody></table></div>`;
+`<div class="u-list">${S.members.slice().sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9) || (a.name || "").localeCompare(b.name || "", "ar")).map(m => `<div class="u-card click" data-edit-member="${esc(m.phone)}" tabindex="0">
+<span class="avatar">${esc(initial(m.name || "؟"))}</span>
+<div class="grow"><div class="u-name">${esc(m.name || "بدون اسم")}${m.phone === me ? ` <span class="tag">أنت</span>` : ""}</div>
+<div class="u-meta"><span class="chip ${ROLE_CHIP[m.role] || "mute"}">${ROLE_LABEL[m.role] || m.role}</span>${m.title ? `<span>${esc(m.title)}</span>` : ""}${m.role === "accountant" ? `<span>الرصيد ${money(m.budget)}</span>` : ""}</div>
+<div class="u-phone" dir="ltr">${esc(showPhone(m.phone))}${m.init_password ? ` <span class="u-pw" dir="rtl">· كلمة المرور الافتراضية</span>` : ""}</div></div>
+${m.phone === me ? "" : `<button class="btn ghost sm icon-only u-del" type="button" data-del-member="${esc(m.phone)}" title="إزالة المستخدم" aria-label="إزالة المستخدم"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>`}</div>`).join("")}</div>`;
   };
+  const DEFAULT_PW = "000000";
   const roleOpts = cur => (S.isAdmin ? ["custodian", "tech", "accountant", "admin"] : ["custodian", "tech"]).concat(cur === "staff" ? ["staff"] : []);
   window.openMember = function(phone){
     const m = phone ? S.members.find(x => x.phone === phone) : null;
@@ -441,20 +439,19 @@ ${S.members.slice().sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9) |
 <div class="field wide" id="mTitleW"><label for="mTitle">المسمى الوظيفي <span class="sub">(اختياري)</span></label><input type="text" id="mTitle" maxlength="60" list="mTitles" value="${esc(m?.title || "")}" placeholder="مثال: شؤون الطلاب"><datalist id="mTitles"><option value="شؤون الطلاب"><option value="الشؤون التعليمية"><option value="شؤون المعلمين"><option value="العلاقات العامة"><option value="الدعم الفني"><option value="المستودع والمشتريات"></datalist></div>
 <div class="field" id="mBudgetW"><label for="mBudget">${m ? "رصيد الصلاحية المتاح (ر.س)" : "مبلغ الصلاحية (ر.س)"}</label><input type="number" id="mBudget" min="0" step="0.01" inputmode="decimal" value="${m ? +m.budget || 0 : ""}" placeholder="مثال: 10000"></div>
 <div class="field wide"><label for="mEmail">البريد الإلكتروني <span class="sub">(اختياري)</span></label><input type="email" id="mEmail" dir="ltr" style="text-align:right" autocomplete="off" placeholder="name@example.com" value="${esc(m?.email || "")}"></div>
-<div class="field wide"><label for="mPw">${m ? "كلمة مرور جديدة (اختياري)" : "كلمة المرور الأولى (اختياري)"}</label><div class="pw-wrap"><input type="text" id="mPw" dir="ltr" autocomplete="off" minlength="6" placeholder="${m ? "اتركها فارغة لإبقاء كلمة المرور الحالية" : "6 أحرف على الأقل"}"><button type="button" class="btn sm" id="mPwGen">توليد</button></div></div>
-</div><p class="c-sub">${m?.phone === S.phone ? "كلمة مرورك أنت تُخفى عن الجميع." : "تظهر لك في جدول المستخدمين لين يغيّرها المستخدم من الإعدادات. ويقدر يدخل برمز واتساب في أي وقت."}</p><p class="c-sub" id="mBudgetHint">ينقص الرصيد مع كل عهدة يصرفها أو سند صرف يسجّله، ويعود إليه ما يُرجَع من العهد أو سند يُلغى. زِده متى ما أردت.</p>
+${m && m.phone !== S.phone ? `<div class="field wide"><label class="check"><input type="checkbox" id="mPwReset"> إعادة كلمة المرور إلى الافتراضية (000000)</label></div>` : ""}
+</div><p class="c-sub">${m ? "" : "يدخل المستخدم برقمه وكلمة المرور الافتراضية 000000، أو برمز واتساب، ويغيّرها من «حسابي»."}</p><p class="c-sub" id="mBudgetHint">ينقص الرصيد مع كل عهدة يصرفها أو سند صرف يسجّله، ويعود إليه ما يُرجَع من العهد أو سند يُلغى. زِده متى ما أردت.</p>
 <p class="err" id="mErr" hidden></p></div>
 <footer><button class="btn primary" type="submit">${m ? "حفظ" : "إضافة"}</button><button class="btn" type="button" data-close>إلغاء</button></footer></form>`, sheet => {
       const sync = () => { const r = $("#mRole", sheet).value, a = r === "accountant"; $("#mBudgetW", sheet).hidden = $("#mBudgetHint", sheet).hidden = !a; $("#mRoleDesc", sheet).textContent = ROLES[r]?.desc || ""; };
       $("#mRole", sheet).onchange = sync; sync();
-      $("#mPwGen", sheet).onclick = () => { const a = "abcdefghjkmnpqrstuvwxyz23456789", r = crypto.getRandomValues(new Uint32Array(8)); $("#mPw", sheet).value = [...r].map(x => a[x % a.length]).join(""); };
       $("#mForm", sheet).onsubmit = async e => { e.preventDefault(); const er = $("#mErr", sheet);
-        const args = { p_token: token(), p_name: $("#mName", sheet).value.trim(), p_role: $("#mRole", sheet).value, p_budget: parseFloat($("#mBudget", sheet).value) || 0, p_password: $("#mPw", sheet).value.trim() || null, p_email: $("#mEmail", sheet).value.trim() || null, p_title: $("#mTitle", sheet).value.trim() || null };
+        const args = { p_token: token(), p_name: $("#mName", sheet).value.trim(), p_role: $("#mRole", sheet).value, p_budget: parseFloat($("#mBudget", sheet).value) || 0, p_password: m ? ($("#mPwReset", sheet)?.checked ? DEFAULT_PW : null) : DEFAULT_PW, p_email: $("#mEmail", sheet).value.trim() || null, p_title: $("#mTitle", sheet).value.trim() || null };
         if (args.p_email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(args.p_email)) { er.textContent = "اكتب بريدًا إلكترونيًا صحيحًا، أو اتركه فارغًا."; er.hidden = false; return; }
         if (args.p_password && args.p_password.length < 6) { er.textContent = "كلمة المرور 6 أحرف على الأقل."; er.hidden = false; return; }
         const r = m ? await rpc("member_update", { ...args, p_phone: m.phone }) : await rpc("member_add", { ...args, p_phone: $("#mPhone", sheet).value });
         if (r?.error) { er.textContent = r.error === "exists" ? "هذا الرقم مسجّل من قبل." : r.error === "bad_phone" ? "اكتب رقم جوال سعودي صحيح يبدأ بـ 05." : r.error === "self" ? "لا يمكنك تغيير صلاحيتك أنت." : r.error === "bad_password" ? "كلمة المرور من 6 إلى 64 حرفًا." : r.error === "bad_email" ? "البريد الإلكتروني غير صحيح." : r.error === "forbidden" ? "ليست لديك صلاحية لإدارة هذا النوع من الحسابات." : "تعذّر الحفظ. أعد المحاولة."; er.hidden = false; return; }
-        toast(m ? "حُفظت التعديلات" : args.p_password ? "أُضيف المستخدم. يدخل برقمه وكلمة المرور، أو برمز واتساب." : "أُضيف المستخدم. يقدر يدخل الآن برقمه."); closeModal(); loadMembers(); load(); };
+        toast(m ? "حُفظت التعديلات" : "أُضيف المستخدم. يدخل برقمه وكلمة المرور 000000، أو برمز واتساب."); closeModal(); loadMembers(); load(); };
     });
   };
   document.addEventListener("click", e => {

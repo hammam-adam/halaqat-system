@@ -41,6 +41,11 @@
 .acct-grid .field{display:grid;gap:6px}
 .acct-grid input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line-strong);border-radius:10px;background:var(--surface);color:var(--fg);font:inherit;min-height:42px}
 .acct-grid input:disabled{background:var(--surface-2);color:var(--muted)}
+.pw-row{display:flex;align-items:center;gap:12px}
+.pw-row .pw-ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--brand-soft);color:var(--brand)}
+.pw-row .pw-ic svg{width:20px;height:20px}
+.pw-row .grow{flex:1;min-width:0}.pw-row .grow b{display:block;font-size:15px}.pw-row .grow span{display:block;font-size:13px;color:var(--muted);line-height:1.6}
+.pw-form{display:grid;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .ro-line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);min-height:42px}
 .dev-list,.act-list{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .dev-list>div,.act-list>button{display:flex;align-items:center;gap:12px;padding:11px 14px;border-top:1px solid var(--line);background:var(--surface);font:inherit;color:inherit;text-align:start;width:100%}
@@ -121,8 +126,8 @@
   function paintTab(){
     const body = $("#setBody"); if (!body) return;
     if (tab === "users") {
-      body.innerHTML = `<div class="set-row"><p class="hint">${S.isAdmin ? "كل مستخدم يدخل بكلمة المرور أو برمز يصله على واتساب. اضغط على المستخدم لتعديله أو لتعيين كلمة مرور جديدة له." : "تقدر تضيف حسابات الإداريين والدعم الفني وتعدّلها. حسابات المدير والمحاسب يديرها مدير النظام."}</p><button class="btn primary" type="button" id="addMember">${ICON.plus}مستخدم جديد</button></div>
-${roleGuide()}<section class="panel" id="memberList"></section>`;
+      body.innerHTML = `<div class="set-row"><p class="hint">${S.isAdmin ? "كل مستخدم يدخل بكلمة المرور أو برمز يصله على واتساب. اضغط على المستخدم لتعديله أو لإعادة كلمة مروره إلى الافتراضية." : "تقدر تضيف حسابات الإداريين والدعم الفني وتعدّلها. حسابات المدير والمحاسب يديرها مدير النظام."}</p><button class="btn primary" type="button" id="addMember">${ICON.plus}مستخدم جديد</button></div>
+<section class="panel" id="memberList"></section>${roleGuide()}`;
       views.users.bind(); views.users.fill(); loadMembers();
     } else if (tab === "look") {
       body.innerHTML = `<section class="panel sys-panel"><header><h3>وضع العرض</h3></header><div class="ss-body">${modeSeg()}<p class="hint">«تلقائي» يتبع إعداد جهازك. الاختيار يُحفظ على هذا الجهاز فقط، وكل مستخدم يختار لجهازه.</p></div></section>` +
@@ -173,13 +178,17 @@ ${roleGuide()}<section class="panel" id="memberList"></section>`;
 <div class="ss-actions"><button class="btn primary" type="submit" form="profForm">حفظ البيانات</button><span class="ss-status" id="pfStatus"></span></div>
 </div></section>
 
-<section class="panel sys-panel"><header><h3>كلمة المرور</h3></header><div class="ss-body">
-<p class="hint">${!has ? "ما عندك كلمة مرور بعد. ضع كلمة مرور تدخل بها بدل انتظار رمز واتساب." : fromAdmin ? "كلمة مرورك الحالية وضعها مدير النظام ويقدر يشوفها. غيّرها لكلمة مرور تعرفها أنت فقط." : "تقدر تدخل بكلمة مرورك أو برمز واتساب. إذا نسيتها ادخل بالرمز وغيّرها من هنا."}</p>
-<form id="pwForm" class="acct-grid" novalidate>
-<div class="field"><label class="lbl" for="pwNew">كلمة المرور الجديدة</label><input type="password" id="pwNew" autocomplete="new-password" dir="ltr"></div>
+<section class="panel sys-panel"><div class="ss-body">
+<div class="pw-row"><span class="pw-ic">${svg('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>')}</span>
+<div class="grow"><b>كلمة المرور</b><span>${!has ? "ما عندك كلمة مرور بعد، وتدخل برمز واتساب." : fromAdmin ? "تدخل بكلمة المرور الافتراضية. غيّرها لكلمة تعرفها أنت فقط." : "كلمة مرور خاصة بك. إذا نسيتها ادخل برمز واتساب وغيّرها من هنا."}</span></div>
+<button class="btn sm" type="button" id="pwToggle">${has ? "تغيير" : "إضافة"}</button></div>
+<form id="pwForm" class="pw-form" novalidate hidden>
+<div class="acct-grid">
+<div class="field"><label class="lbl" for="pwNew">كلمة المرور الجديدة</label><input type="password" id="pwNew" autocomplete="new-password" dir="ltr" placeholder="6 أحرف على الأقل"></div>
 <div class="field"><label class="lbl" for="pwNew2">أعد كتابتها</label><input type="password" id="pwNew2" autocomplete="new-password" dir="ltr"></div>
+</div>
+<div class="ss-actions"><button class="btn primary" type="submit">حفظ كلمة المرور</button><button class="btn" type="button" id="pwCancel">إلغاء</button><label class="check"><input type="checkbox" id="pwShow"> إظهار</label><span class="ss-status" id="pwStatus"></span></div>
 </form>
-<div class="ss-actions"><button class="btn primary" type="submit" form="pwForm">${has ? "تغيير كلمة المرور" : "حفظ كلمة المرور"}</button><span class="ss-status" id="pwStatus">6 أحرف على الأقل.</span></div>
 </div></section>
 
 <section class="panel sys-panel"><header><h3>الأجهزة المسجّل دخولها</h3></header><div class="ss-body">
@@ -201,12 +210,16 @@ ${mine.length ? `<section class="panel sys-panel"><header><h3>آخر عمليا�
       const a = $("#pwNew").value, b = $("#pwNew2").value;
       if (a.length < 6 || a.length > 64) { say("pwStatus", "bad", ERR.bad_password); return notify("رُفض تغيير كلمة المرور: " + ERR.bad_password, "bad"); }
       if (a !== b) { say("pwStatus", "bad", "الكلمتان غير متطابقتين."); return notify("رُفض تغيير كلمة المرور: الكلمتان غير متطابقتين.", "bad"); }
-      const btn = document.querySelector('[form="pwForm"]'); btn.disabled = true;
+      const btn = $("#pwForm button[type=submit]"); btn.disabled = true;
       const x = await appRpc("password_change", { p_new: a });
       btn.disabled = false;
       if (x?.error) { say("pwStatus", "bad", ERR[x.error] || MSG.network); return notify("رُفض تغيير كلمة المرور: " + (ERR[x.error] || MSG.network), "bad"); }
       notify("تم تغيير كلمة المرور. من الآن تدخل بها أو برمز واتساب.", "good"); paintAccount();
     };
+    const pwOpen = on => { $("#pwForm").hidden = !on; $("#pwToggle").hidden = on; if (on) $("#pwNew").focus(); else { $("#pwNew").value = $("#pwNew2").value = ""; say("pwStatus", "", ""); } };
+    $("#pwToggle").onclick = () => pwOpen(true);
+    $("#pwCancel").onclick = () => pwOpen(false);
+    $("#pwShow").onchange = e => { $("#pwNew").type = $("#pwNew2").type = e.target.checked ? "text" : "password"; };
     $("#pfPhoneBtn").onclick = () => openPhoneChange(has);
     const eo = $("#endOthers"); if (eo) eo.onclick = async () => {
       if (!eo.classList.contains("armed")) { eo.classList.add("armed", "danger"); eo.textContent = "تأكيد الخروج من الأجهزة الأخرى"; return; }

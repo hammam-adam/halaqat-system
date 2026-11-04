@@ -20,6 +20,16 @@
   .m-ftog svg{width:18px;height:18px;transition:transform .15s}
   .m-ftog[aria-expanded="true"] svg{transform:rotate(180deg)}
 
+  /* السندات: سطر مختصر، الاسم يمينًا والمبلغ يسارًا بخط أبرز، والتاريخ والبند تحت الاسم */
+  .dt tr:has(td.m-hide){display:flex!important;align-items:center;gap:12px}
+  .dt tr:has(td.m-hide) td.main{flex:1;min-width:0;padding:0!important}
+  .dt tr:has(td.m-hide) td.m-hide,.dt tr:has(td.m-hide) td.hide-m{display:none!important}
+  .dt tr:has(td.m-hide) td.n{width:auto!important;flex:none;padding:0!important;flex-direction:column;align-items:flex-end;gap:2px}
+  .dt tr:has(td.m-hide) td.n::before{display:none}
+  .dt tr:has(td.m-hide) .amount{font-size:16.5px;font-weight:700}
+  .dt tr:has(td.m-hide) .who .sub:not(.m-meta){display:none}
+  .m-meta{display:block!important;font-size:12.5px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dt tr:has(td.m-hide) .title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* الرأس */
   .side{padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))!important}
   .side-brand{padding:0!important;gap:10px!important;align-items:center}
