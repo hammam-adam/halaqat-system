@@ -160,7 +160,7 @@ tr.click,tr[data-c-open]{cursor:pointer}
     const t = todayISO(), org = S.settings.orgName?.trim() || DEFAULT_ORG;
     return baseRepShell.call(this)
       .replace(`<button class="btn" type="button" id="btnCsv"`, `<button class="btn primary" type="button" id="btnPrint">${ICON.receipt}طباعة التقرير</button><button class="btn" type="button" id="btnCsv"`)
-      .replace(`<div class="page">`, `<div class="page"><div class="print-head"><img src="logo-sm.png" alt=""><div class="org"><b>${esc(org)}</b><span>${esc(window.APP_CONFIG.tagline)}</span></div>
+      .replace(`<div class="page">`, `<div class="page"><div class="print-head"><img src="mark.svg" alt=""><div class="org"><b>${esc(org)}</b><span>${esc(window.APP_CONFIG.tagline)}</span></div>
 <div class="rt"><b>التقرير المالي</b><span id="prLabel"></span><br>تاريخ الطباعة: ${esc(hijri(t))} هـ · ${esc(gDate(t))} م</div></div>`)
       .replace("<h3>مكافآت المعلمين</h3>", "<h3>مكافآت المعلمين والمشرفين</h3>")
       .replace(/<\/div>$/, `<div class="print-sign"><div><i></i>المحاسب</div><div><i></i>مدير المجمع</div></div></div>`);

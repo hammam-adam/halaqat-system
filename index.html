@@ -1,11 +1,13 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="booting">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#2a1b10">
-<link rel="icon" type="image/png" href="logo-sm.png">
+<link rel="icon" type="image/svg+xml" href="mark.svg">
+<style>html.booting body>*:not(.splash){visibility:hidden}</style>
+<script>setTimeout(function(){document.documentElement.classList.remove("booting")},8000)</script>
 <title>نظام إدارة الحلقات</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,7 +50,7 @@ h1,h2,h3,h4{font-family:var(--f-display)}
 .app{direction:rtl;display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}
 .side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:var(--side);color:var(--side-fg);padding:26px 16px 18px;overflow-y:auto}
 .side-brand{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:4px 8px 24px;border-bottom:1px solid var(--side-line);margin-bottom:18px}
-.mark{flex:none;aspect-ratio:381/520;background:var(--brand);-webkit-mask:url(logo-sm.png) center/contain no-repeat;mask:url(logo-sm.png) center/contain no-repeat}
+.mark{flex:none;aspect-ratio:381/520;background:var(--brand);-webkit-mask:url(mark.svg) center/contain no-repeat;mask:url(mark.svg) center/contain no-repeat}
 .side-brand .mark{width:62px;background:var(--side-fg)}
 .side-brand h1{margin:0;font-size:16.5px;font-weight:700;line-height:1.6;text-wrap:balance}
 .side-brand p{margin:0;font-size:12px;color:var(--gold-hi)}
