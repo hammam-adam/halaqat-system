@@ -22,12 +22,12 @@
   document.head.appendChild(css);
 
   const canEdit = () => S.isAdmin || S.role === "accountant" || S.role === "staff";
-  const key = n => String(n || "").trim();
+  const key = n => String(n || "").trim().replace(/\s+/g, " ").replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/[\u064B-\u0652\u0640]/g, "");
   const recvList = () => window.__recv?.list || [];
 
   function gather(){
     const m = new Map();
-    const get = n => { n = key(n); if (!n) return null; if (!m.has(n)) m.set(n, { name: n, teachers: [], guard: [], recv: [], members: [], tx: 0, phones: new Map() }); return m.get(n); };
+    const get = raw => { const n = key(raw); if (!n) return null; if (!m.has(n)) m.set(n, { k: n, name: String(raw).trim(), names: new Set(), teachers: [], guard: [], recv: [], members: [], tx: 0, phones: new Map() }); const p = m.get(n); p.names.add(String(raw).trim().replace(/\s+/g, " ")); return p; };
     const ph = (p, raw, where) => { const v = normPhone(raw || ""); if (!v) return; if (!p.phones.has(v)) p.phones.set(v, new Set()); p.phones.get(v).add(where); };
     (S.teachers || []).forEach(t => { const p = get(t.name); if (p) { p.teachers.push(t); ph(p, t.phone, "المعلمين"); } });
     (S.students || []).forEach(s => { const p = get(s.guardian); if (p) { p.guard.push(s); ph(p, s.phone, "الطلاب"); } });
@@ -59,12 +59,12 @@
     const draw = () => {
       const s = q.trim(), sd = normPhone(s) || s.replace(/\D/g, "");
       let rows = all.filter(p => flt === "all" || (flt === "conf" ? p.phones.size > 1 : !p.phones.size && (p.teachers.length || p.guard.length || p.recv.length)));
-      if (s) rows = rows.filter(p => p.name.includes(s) || (sd.length >= 3 && [...p.phones.keys()].some(x => x.includes(sd))));
+      if (s) rows = rows.filter(p => [...p.names].some(x => x.includes(s)) || p.k.includes(key(s)) || (sd.length >= 3 && [...p.phones.keys()].some(x => x.includes(sd))));
       const shown = rows.slice(0, 200);
       list.innerHTML = shown.length ? shown.map(p => {
         const phs = [...p.phones.keys()];
         const phHtml = !phs.length ? `<span class="ph none">بدون جوال</span>` : `<span class="ph${phs.length > 1 ? " bad" : ""}">${phs.map(showPhone).join("<br>")}</span>`;
-        return `<div class="pp-row"><div class="grow"><div class="nm">${esc(p.name)}</div><div class="ch">${chips(p).map(c => `<span>${c}</span>`).join("")}</div></div>${phHtml}${ed && (p.teachers.length || p.guard.length || p.recv.length) ? `<button class="btn sm" type="button" data-pp-edit="${esc(p.name)}">تعديل</button>` : ""}</div>`;
+        return `<div class="pp-row"><div class="grow"><div class="nm">${esc(p.name)}${p.names.size > 1 ? ` <span class="sub" style="font-weight:400;font-size:12px;color:var(--muted)">يُكتب أيضًا: ${esc([...p.names].filter(x => x !== p.name).join("، "))}</span>` : ""}</div><div class="ch">${chips(p).map(c => `<span>${c}</span>`).join("")}</div></div>${phHtml}${ed && (p.teachers.length || p.guard.length || p.recv.length) ? `<button class="btn sm" type="button" data-pp-edit="${esc(p.k)}">تعديل</button>` : ""}</div>`;
       }).join("") + (rows.length > shown.length ? `<div class="pp-more">يظهر أول ${shown.length} من ${rows.length}. استخدم البحث للوصول للباقي.</div>` : "") : `<p class="hint">لا يوجد أشخاص مطابقون.</p>`;
       list.querySelectorAll("[data-pp-edit]").forEach(b => b.onclick = () => openPerson(b.dataset.ppEdit, () => paintPeople(body)));
     };
@@ -73,11 +73,11 @@
     draw();
   };
 
-  function openPerson(name, done){
-    const p = gather().find(x => x.name === name); if (!p) return;
+  function openPerson(k, done){
+    const p = gather().find(x => x.k === k); if (!p) return;
     const phs = [...p.phones.entries()];
     const best = (phs.find(([, w]) => !w.has("حساب الدخول")) || phs[0] || [""])[0];
-    const hals = (S.halaqat || []).filter(h => key(h.teacher) === p.name);
+    const hals = (S.halaqat || []).filter(h => key(h.teacher) === p.k);
     const parts = [
       p.teachers.length ? `بيانات المعلم` : "",
       p.guard.length ? `${p.guard.length} ${p.guard.length > 1 ? "طلاب" : "طالب"} (جوال ولي الأمر)` : "",
@@ -88,6 +88,7 @@
 <div class="field wide"><label for="ppName">الاسم</label><input type="text" id="ppName" value="${esc(p.name)}" required></div>
 <div class="field wide"><label for="ppPhone">الجوال</label><input type="tel" id="ppPhone" dir="ltr" style="text-align:right" value="${esc(best ? showPhone(best) : "")}" placeholder="05xxxxxxxx"></div>
 </div>
+${p.names.size > 1 ? `<p class="pp-warn">مكتوب بأكثر من طريقة: ${esc([...p.names].join("، "))}. الحفظ يوحّد الكتابة على الاسم أعلاه.</p>` : ""}
 ${phs.length > 1 ? `<p class="pp-warn">هذا الشخص مسجّل بأكثر من رقم: ${phs.map(([v, w]) => `${showPhone(v)} (في ${[...w].join(" و")})`).join("، ")}. اختر الرقم الصحيح أعلاه، ويُوحَّد في كل مكان.</p>` : ""}
 <div class="pp-sum">يتغيّر في: ${parts.join("، ") || "لا شيء"}${hals.length ? `، واسم المعلم في ${hals.length} حلقة` : ""}.
 ${p.tx ? `<br>السندات (${p.tx}) تبقى كما سُجّلت، لأنها سجل مالي لا يُغيَّر.` : ""}
@@ -106,7 +107,7 @@ ${p.members.length ? `<br>حساب الدخول (${p.members.map(u => showPhone(
         p.teachers.forEach(t => { if (t.name !== nm || normPhone(t.phone || "") !== phone) jobs.push(() => S.db.doc("teachers/" + t.id).update({ name: nm, phone: shown })); });
         p.guard.forEach(s => { if (s.guardian !== nm || normPhone(s.phone || "") !== phone) jobs.push(() => S.db.doc("students/" + s.id).update({ guardian: nm, phone: shown })); });
         p.recv.forEach(r => { if (r.name !== nm || normPhone(r.phone || "") !== phone) jobs.push(() => S.db.doc("receivables/" + r.id).update({ name: nm, phone })); });
-        if (nm !== p.name) hals.forEach(h => jobs.push(() => S.db.doc("halaqat/" + h.id).update({ teacher: nm })));
+        hals.forEach(h => h.teacher !== nm && jobs.push(() => S.db.doc("halaqat/" + h.id).update({ teacher: nm })));
         if (!jobs.length) { closeModal(); return; }
         const btn = sheet.querySelector("button[type=submit]"); btn.disabled = true; btn.textContent = "جارٍ الحفظ…";
         let ok = 0;
