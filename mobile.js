@@ -7,6 +7,19 @@
   .work-inner{grid-template-columns:minmax(0,1fr)!important}
   #view,.page,.page>*{min-width:0}
   .actions .btn{padding:8px 10px!important;font-size:13.5px}
+  /* تبويبات الإعدادات والإيرادات: شريط أفقي بدل قائمة طويلة */
+  .set-tabs{display:flex!important;overflow-x:auto;scrollbar-width:none;gap:6px!important;padding:6px!important;border-radius:14px!important}
+  .set-tabs::-webkit-scrollbar{display:none}
+  .set-tabs button{width:auto!important;flex:none;white-space:nowrap;padding:8px 12px!important;font-size:13.5px!important;gap:6px!important}
+  .set-tabs button small{display:none!important}
+  .set-tabs button svg{width:16px!important;height:16px!important}
+  .set-tabs .badge{position:static!important;margin-inline-start:4px!important}
+  /* التصفية تنطوي خلف زر */
+  .filters.m-fold{display:none!important}
+  .m-ftog{display:flex;align-items:center;justify-content:space-between;width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--fg);font:inherit;font-size:14px;cursor:pointer}
+  .m-ftog svg{width:18px;height:18px;transition:transform .15s}
+  .m-ftog[aria-expanded="true"] svg{transform:rotate(180deg)}
+
   /* الرأس */
   .side{padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))!important}
   .side-brand{padding:0!important;gap:10px!important;align-items:center}
@@ -18,6 +31,8 @@
   .today{flex:1 1 0!important;font-size:12.5px!important;line-height:1.55}
   .today .cal{width:32px!important;height:32px!important;border-radius:9px}
   .topbar .icon-only{padding:7px!important}
+  /* أزرار العهد موجودة داخل صفحة العهد، فلا داعي لتكرارها أعلى كل صفحة على الجوال */
+  #topActions{display:none!important}
   .actions{flex-basis:100%}
   .actions .btn{flex:1;justify-content:center;padding:10px 12px}
   .page-head h2{font-size:20px!important}
@@ -103,4 +118,29 @@
   mq.addEventListener ? mq.addEventListener("change", lay) : mq.addListener(lay);
   document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
   lay();
+
+  /* أدوات الصفحات على الجوال */
+  const fOpen = {};
+  function tidy(){
+    const view = document.getElementById("view"); if (!view) return;
+    const key = document.querySelector(".nav button[aria-selected=true]")?.dataset.view || "";
+    view.querySelectorAll(".filters").forEach((f, i) => {
+      const k = key + i;
+      let t = f.previousElementSibling;
+      if (!t || !t.classList.contains("m-ftog")) {
+        t = document.createElement("button"); t.type = "button"; t.className = "m-ftog";
+        t.innerHTML = `<span>التصفية والبحث</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>`;
+        t.onclick = () => { fOpen[k] = !fOpen[k]; t.setAttribute("aria-expanded", fOpen[k]); f.classList.toggle("m-fold", !fOpen[k]); };
+        f.before(t);
+      }
+      t.hidden = !mq.matches;
+      t.setAttribute("aria-expanded", !!fOpen[k]);
+      f.classList.toggle("m-fold", mq.matches && !fOpen[k]);
+    });
+    if (mq.matches) view.querySelectorAll('.set-tabs button[aria-pressed="true"]').forEach(b => { const n = b.parentElement, id = b.dataset.setTab || b.dataset.revTab || ""; if (n.dataset.mScrolled === id) return; n.dataset.mScrolled = id; n.scrollLeft = 0; const d = b.getBoundingClientRect().left - n.getBoundingClientRect().left; if (d < 0) n.scrollLeft += d - 8; });
+  }
+  let tq = 0;
+  const v = document.getElementById("view");
+  if (v) new MutationObserver(() => { if (!tq) tq = requestAnimationFrame(() => { tq = 0; tidy(); }); }).observe(v, { childList: true, subtree: true });
+  mq.addEventListener ? mq.addEventListener("change", tidy) : mq.addListener(tidy);
 })();
