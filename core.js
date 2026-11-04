@@ -152,7 +152,7 @@ const fees = feeRows(m,"all").filter(r=>r.fee>0);
 const feeDue = sum(fees,r=>Math.max(0,r.fee-r.paid));
 const tcDue = sum(S.teachers.filter(x=>x.active!==false), x=>Math.max(0,(+x.monthlyReward||0)-rewardPaid(x.id,m)));
 $("#kpis").innerHTML =
-kpi({label:"الرصيد الحالي", value:mh(inc-exp), icon:ICON.wallet, lead:true, extra:`<div class="split"><span>الصندوق ${money(bal("cash"))}</span><span>البنك ${money(bal("bank"))}</span></div>`}) +
+kpi({label:"الرصيد الحالي", value:mh(inc-exp), icon:ICON.wallet, lead:true, note:"الصندوق والبنك معًا"}) +
 kpi({label:`إيرادات ${monthName(m)}`, value:mh(sum(mI)), icon:ICON.inc, tone:"var(--inc)", note:`${mI.length} سند قبض`}) +
 kpi({label:`مصروفات ${monthName(m)}`, value:mh(sum(mE)), icon:ICON.exp, tone:"var(--exp)", note:`${mE.length} سند صرف`}) +
 kpi({label:`مستحقات ${monthName(m)} المتبقية`, value:mh(feeDue+tcDue), icon:ICON.clock, tone:"var(--warnc)", note:`رسوم لم تُحصّل ${money(feeDue)}<br>مكافآت لم تُصرف ${money(tcDue)}`});
