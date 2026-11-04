@@ -84,7 +84,7 @@
     const open = R.list.filter(isOpen); if (!open.length) return [];
     const late = open.filter(isLate);
     return [late.length
-      ? { key: "rv-late-" + thisMonth(), tone: "bad", text: `${late.length} ${late.length > 2 && late.length < 11 ? "مستحقات متأخرة" : "مستحق متأخر"} بقيمة <b>${money(sum(late, restOf))}</b>، من أصل ${money(sum(open, restOf))} لك عند الآخرين.`, go: () => show("receivables") }
+      ? { key: "rv-late-" + thisMonth(), tone: "bad", text: `${late.length} ${late.length > 2 && late.length < 11 ? "مستحقات متأخرة" : "مستحق متأخر"} بقيمة <b>${money(sum(late, restOf))}</b>${late.length < open.length ? `، من أصل ${money(sum(open, restOf))} لك عند الآخرين` : ""}.`, go: () => show("receivables") }
       : { key: "rv-" + thisMonth(), tone: "info", text: `لك مستحقات بقيمة <b>${money(sum(open, restOf))}</b> عند ${open.length} ${open.length === 1 ? "جهة" : "جهات"}، ولا تدخل في الرصيد حتى تُستلم.`, go: () => show("receivables") }];
   });
 
