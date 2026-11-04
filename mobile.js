@@ -3,6 +3,10 @@
   const css = document.createElement("style");
   css.textContent = `
 @media (max-width:980px){
+  /* منع اتساع الصفحة عن عرض الشاشة */
+  .work-inner{grid-template-columns:minmax(0,1fr)!important}
+  #view,.page,.page>*{min-width:0}
+  .actions .btn{padding:8px 10px!important;font-size:13.5px}
   /* الرأس */
   .side{padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))!important}
   .side-brand{padding:0!important;gap:10px!important;align-items:center}

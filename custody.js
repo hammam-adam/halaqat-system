@@ -469,7 +469,7 @@ ${S.members.slice().sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9) |
 
   /* top bar: custody request / settlement instead of the voucher buttons (those move to the vouchers page) */
   const top = $("#topActions");
-  top.innerHTML = `<button class="btn" id="btnSettle" type="button">${ICO.file}تصفية عهدة</button><button class="btn primary" id="btnReq" type="button">${ICON.plus}<span id="btnReqT">طلب عهدة</span></button>`;
+  top.innerHTML = `<button class="btn" id="btnSettle" type="button">${ICO.file}تصفية عهدة</button><button class="btn" id="btnReq" type="button">${ICON.plus}<span id="btnReqT">طلب عهدة</span></button>`;
   $("#btnReq").onclick = () => { if (C.me) mgr() ? openIssue() : openRequest(); };
   $("#btnSettle").onclick = () => {
     if (!C.me) return;
