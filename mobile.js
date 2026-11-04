@@ -22,7 +22,8 @@
 
   /* السندات: سطر مختصر، الاسم يمينًا والمبلغ يسارًا بخط أبرز، والتاريخ والبند تحت الاسم */
   .dt tr:has(td.m-hide){display:flex!important;align-items:center;gap:12px}
-  .dt tr:has(td.m-hide) td.main{flex:1;min-width:0;padding:0!important}
+  .dt tr:has(td.m-hide) td.main{flex:1;min-width:0;padding:0!important;text-align:start!important}
+  .dt tr:has(td.m-hide) .who{justify-content:flex-start;text-align:start}
   .dt tr:has(td.m-hide) td.m-hide,.dt tr:has(td.m-hide) td.hide-m{display:none!important}
   .dt tr:has(td.m-hide) td.n{width:auto!important;flex:none;padding:0!important;flex-direction:column;align-items:flex-end;gap:2px}
   .dt tr:has(td.m-hide) td.n::before{display:none}
