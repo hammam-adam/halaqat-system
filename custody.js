@@ -513,7 +513,7 @@ ${S.members.slice().sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9) |
       else if (e?.message === "forbidden") toast("ليست لديك صلاحية لهذا الإجراء.");
       else if (e?.message === "not_yours") notify("رُفض التعديل: هذا السند سجّله مستخدم آخر، ولا يعدّله أو يلغيه إلا هو أو مدير النظام.", "bad");
       else if (e?.message === "no_delete") notify("رُفض الحذف: السندات لا تُحذف. ألغِ السند بدلًا من حذفه، ويبقى في السجل.", "bad");
-      else toast("تعذّر الحفظ. تحقق من الاتصال وأعد المحاولة.");
+      else { console.error("write failed:", e); const c = String(e?.message || ""); toast(/fetch|network|Failed/i.test(c) || !c ? "تعذّر الحفظ. تحقق من الاتصال وأعد المحاولة." : `تعذّر الحفظ (رمز الخطأ: ${c.slice(0, 60)}). أرسل الرمز للدعم.`); }
       return false;
     }
   };
