@@ -138,7 +138,7 @@ ${roleGuide()}<section class="panel" id="memberList"></section>`;
   const ROLE_NAME = new Proxy({}, { get: (_, r) => roleName(r) });
   function roleGuide(){
     const keys = S.isAdmin ? ["admin", "accountant", "custodian", "tech"] : ["custodian", "tech"];
-    return `<section class="panel sys-panel role-guide"><header><h3>الصلاحيات</h3></header><div class="ss-body"><div class="rg-list">${keys.map(k => `<div><span class="chip ${ROLES[k].chip}">${ROLES[k].name}</span><p>${ROLES[k].desc}</p></div>`).join("")}
+    return `<section class="panel sys-panel role-guide"><header><h3>الصلاحيات</h3></header><div class="ss-body"><div class="rg-list">${keys.map(k => `<div><span class="chip ${window.ROLES[k].chip}">${window.ROLES[k].name}</span><p>${window.ROLES[k].desc}</p></div>`).join("")}
 <div><span class="chip mute">المعلمون</span><p>ما يحتاجون حسابًا. أضفهم من صفحة «المعلمون» برقم جوالهم، ويوصلهم رابط تأكيد استلام المكافأة.</p></div></div></div></section>`;
   }
   const ERR = { bad_name: "اكتب اسمك (حرفين على الأقل).", bad_email: "البريد الإلكتروني غير صحيح.", bad_phone: "اكتب رقم جوال سعودي صحيح يبدأ بـ 05.", same_phone: "هذا رقمك الحالي.", exists: "هذا الرقم مسجّل لمستخدم آخر.", wrong_password: "كلمة المرور الحالية غير صحيحة.", bad_password: "كلمة المرور من 6 إلى 64 حرفًا." };
