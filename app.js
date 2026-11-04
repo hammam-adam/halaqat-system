@@ -222,7 +222,7 @@ h1,h2,h3,h4{letter-spacing:0}
   setMethod(authMethod);
 
   /* تحميل الملفات بالتوازي مع الحفاظ على ترتيب التنفيذ */
-  const FILES = ["core.js", "custody.js", "extras.js", "settings.js", "notify.js", "reward.js", "audit.js"];
+  const FILES = ["core.js", "custody.js", "extras.js", "settings.js", "notify.js", "reward.js", "audit.js", "receivables.js"];
   let left = FILES.length, started = false;
   const done = () => { if (--left === 0 && !started) { started = true; start(); } };
   FILES.forEach(f => { const el = document.createElement("script"); el.src = f; el.async = false; el.onload = el.onerror = done; document.body.appendChild(el); });

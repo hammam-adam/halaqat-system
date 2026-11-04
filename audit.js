@@ -22,8 +22,8 @@
 .bk-warn{padding:10px 12px;border-radius:10px;background:var(--warn-bg);color:var(--warn);font-size:13px;line-height:1.8;margin-bottom:12px}`;
   document.head.appendChild(css);
 
-  const ENT = { transactions: "سند", teachers: "معلم", students: "طالب", halaqat: "حلقة", settings: "الإعدادات", custodies: "عهدة", members: "مستخدم", tasks: "مهمة" };
-  const FILTERS = [["", "كل الأنواع"], ["transactions", "السندات"], ["custodies", "العهد"], ["members", "المستخدمون"], ["teachers", "المعلمون"], ["students", "الطلاب"], ["halaqat", "الحلقات"], ["tasks", "المهام"]];
+  const ENT = { transactions: "سند", teachers: "معلم", students: "طالب", halaqat: "حلقة", settings: "الإعدادات", receivables: "مستحق", custodies: "عهدة", members: "مستخدم", tasks: "مهمة" };
+  const FILTERS = [["", "كل الأنواع"], ["transactions", "السندات"], ["receivables", "المستحقات"], ["custodies", "العهد"], ["members", "المستخدمون"], ["teachers", "المعلمون"], ["students", "الطلاب"], ["halaqat", "الحلقات"], ["tasks", "المهام"]];
   const KEY = { amount: "المبلغ", party: "الجهة", category: "البند", date: "التاريخ", note: "ملاحظات", method: "طريقة الدفع", void: "ملغى", voidReason: "سبب الإلغاء",
     name: "الاسم", phone: "الجوال", role: "الصلاحية", title: "المسمى", email: "البريد", budget: "رصيد الصلاحية", status: "الحالة", purpose: "الغرض",
     requested: "المطلوب", settled_total: "المصفّى", holder_name: "صاحب العهدة", rewardMonth: "الشهر", fee: "الرسوم", halaqaId: "الحلقة", teacherId: "المعلم",
