@@ -13,7 +13,7 @@
 .rv h4{margin:0;font-size:15px;font-weight:700;line-height:1.5}
 .rv .meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--muted)}
 .rv .amt{text-align:end;font-weight:700;font-size:15px;white-space:nowrap}
-.rv .amt span{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+.rv .amt span{display:block;font-size:12.5px;font-weight:500;color:var(--muted)}
 .rv .acts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 .rv .acts a.btn{text-decoration:none}
 .rv .bar{grid-column:1/-1;height:5px;border-radius:5px;background:var(--surface-2);overflow:hidden}

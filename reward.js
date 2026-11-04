@@ -11,7 +11,7 @@
 .rcpt p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.7}
 .rcpt .rc-actions{display:flex;flex-wrap:wrap;gap:8px}.rcpt a.btn{text-decoration:none}
 .voucher .vconf{margin-top:10px;font-size:12.5px;color:var(--good);font-weight:600}
-.rc-chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:2px 9px;border-radius:999px;background:var(--warn-bg);color:var(--warn);margin-top:6px}
+.rc-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--warn-bg);color:var(--warn);margin-top:6px}
 .rc-chip.ok{background:var(--good-bg);color:var(--good)}`;
   document.head.appendChild(css);
 

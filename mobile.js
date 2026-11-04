@@ -35,7 +35,7 @@
   .side-brand{padding:0!important;gap:10px!important;align-items:center}
   .side-brand .mark{width:30px!important}
   .side-brand h1{font-size:15px!important;line-height:1.4!important}
-  .side-brand p{font-size:11.5px!important;line-height:1.4}
+  .side-brand p{font-size:12px!important;line-height:1.4}
   .work-inner{padding-top:14px!important;gap:18px!important}
   .topbar{gap:10px!important;padding:10px 12px!important}
   .today{flex:1 1 0!important;font-size:13px!important;line-height:1.5;white-space:nowrap;overflow:hidden}
@@ -53,7 +53,7 @@
   /* الشريط السفلي */
   .nav button.m-over{display:none!important}
   .nav{overflow:visible!important}
-  .nav button{min-width:0!important;font-size:11px!important}
+  .nav button{min-width:0!important;font-size:12px!important}
   #navMore{display:flex}
   .m-more{position:fixed;inset:0;z-index:58;background:rgba(19,16,12,.35);display:flex;align-items:flex-end;direction:rtl}
   .m-more .m-grid{width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:14px 14px calc(84px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;box-shadow:0 -12px 40px -12px rgba(0,0,0,.3)}
@@ -62,7 +62,7 @@
   .m-more button svg.i{width:22px;height:22px;color:var(--brand)}
   .m-more button.on{border-color:var(--brand);background:var(--brand-soft)}
   .m-more button .badge{position:absolute;top:6px;inset-inline-end:8px;margin:0}
-  #navMore .mdot{position:absolute;top:6px;inset-inline-start:calc(50% + 6px);width:8px;height:8px;border-radius:50%;background:#efe3cf}
+  #navMore .mdot{position:absolute;top:6px;inset-inline-start:calc(50% + 6px);width:8px;height:8px;border-radius:50%;background:var(--gold-hi)}
 
   /* النوافذ: تفتح من أسفل الشاشة وفوق الشريط، وزر الحفظ ظاهر دائمًا */
   .scrim{z-index:70!important;align-items:end!important;place-items:end center!important;padding:0!important;padding-top:max(24px,env(safe-area-inset-top,0px))!important}

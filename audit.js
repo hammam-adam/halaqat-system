@@ -11,14 +11,14 @@
 .au-ic{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff;background:var(--info)}
 .au-ic.add{background:var(--good)}.au-ic.delete,.au-ic.void{background:var(--bad)}.au-ic.edit{background:var(--warnc,#b7791f)}
 .au-row b{font-weight:600;font-size:14px;line-height:1.6}
-.au-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.au-meta{font-size:12.5px;color:var(--muted);margin-top:2px}
 .au-ch{display:grid;gap:2px;margin-top:6px;font-size:12.5px;line-height:1.7}
 .au-ch span{color:var(--muted)}.au-ch del{color:var(--bad);text-decoration:none}.au-ch ins{color:var(--good);text-decoration:none;font-weight:600}
 .au-more{display:flex;justify-content:center;padding:12px}
 .bk-list{display:grid}
 .bk-list>div{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:13.5px}
 .bk-list>div:first-child{border-top:0}
-.bk-list .grow{flex:1;min-width:0}.bk-list .grow span{display:block;font-size:12px;color:var(--muted)}
+.bk-list .grow{flex:1;min-width:0}.bk-list .grow span{display:block;font-size:12.5px;color:var(--muted)}
 .bk-warn{padding:10px 12px;border-radius:10px;background:var(--warn-bg);color:var(--warn);font-size:13px;line-height:1.8;margin-bottom:12px}`;
   document.head.appendChild(css);
 

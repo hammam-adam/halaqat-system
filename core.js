@@ -486,7 +486,7 @@ ${S.members.slice().sort((a,b)=>(a.role==="admin"?0:1)-(b.role==="admin"?0:1)||a
 </tbody></table></div>`;
 },
 bind(){
-$("#addMember").onclick=openMember;
+$("#addMember").onclick=()=>openMember();
 $("#memberList").addEventListener("click", async e=>{
 const b=e.target.closest("[data-del-member]"); if(!b) return;
 if(!b.classList.contains("armed")){ b.classList.add("armed","danger"); b.classList.remove("icon-only","ghost"); b.textContent="تأكيد الإزالة"; return; }
@@ -496,22 +496,6 @@ if(error){ toast("تعذّرت الإزالة. أعد المحاولة."); b.dis
 });
 }
 };
-function openMember(){
-openModal(`<form id="mForm" novalidate><header><h3>مستخدم جديد</h3>${closeBtn}</header>
-<div class="content"><div class="form-grid">
-<div class="field wide"><label for="mName">الاسم</label><input type="text" id="mName" placeholder="مثال: محاسب المجمع"></div>
-<div class="field"><label for="mPhone">رقم الجوال (واتساب)</label><input type="tel" id="mPhone" dir="ltr" style="text-align:right" placeholder="05XXXXXXXX"></div>
-<div class="field"><label for="mRole">الصلاحية</label><select id="mRole"><option value="staff">مستخدم (السندات والرسوم والمكافآت)</option><option value="admin">مدير النظام (ويضيف المستخدمين)</option></select></div>
-</div><p class="err" id="mErr" hidden></p></div>
-<footer><button class="btn primary" type="submit">إضافة</button><button class="btn" type="button" data-close>إلغاء</button></footer></form>`, sheet=>{
-$("#mForm",sheet).onsubmit=async e=>{ e.preventDefault(); const er=$("#mErr",sheet);
-const phone=normPhone($("#mPhone",sheet).value);
-if(!phone){ er.textContent="اكتب رقم جوال سعودي صحيح يبدأ بـ 05."; er.hidden=false; return; }
-const {error}=await SB.from("members").insert({phone, name:$("#mName",sheet).value.trim(), role:$("#mRole",sheet).value});
-if(error){ er.textContent = error.code==="23505" ? "هذا الرقم مسجّل من قبل." : "تعذّرت الإضافة. أعد المحاولة."; er.hidden=false; return; }
-toast("أُضيف المستخدم. يقدر يدخل الآن برقمه."); closeModal(); loadMembers(); };
-});
-}
 function show(v){
 if(!views[v] || (v==="users" && !S.isAdmin)) v="summary";
 S.view=v; storeSet("halaqat.view",v);

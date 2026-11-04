@@ -5,10 +5,10 @@
 .ct-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
 .ct-list{display:grid;gap:6px}
 .ct-list>div{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);font-size:14px}
-.ct-list .grow{flex:1;min-width:0}.ct-list .grow span{display:block;font-size:11.5px;color:var(--muted)}
-.ct-list .lock{font-size:11.5px;color:var(--muted)}
+.ct-list .grow{flex:1;min-width:0}.ct-list .grow span{display:block;font-size:12px;color:var(--muted)}
+.ct-list .lock{font-size:12px;color:var(--muted)}
 .ct-add{display:flex;gap:8px;margin-top:10px}.ct-add input{flex:1;min-width:0}
-.pp-hint{font-size:12px;color:var(--good);margin-top:4px;line-height:1.6}`;
+.pp-hint{font-size:12.5px;color:var(--good);margin-top:4px;line-height:1.6}`;
   document.head.appendChild(css);
 
   /* ---------- البنود ---------- */

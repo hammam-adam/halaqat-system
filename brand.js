@@ -11,39 +11,42 @@
 
   /* ثيمات جاهزة: h درجة اللون الأساسي، s تشبّعه، a درجة اللون الذهبي المرافق */
   const THEMES = {
-    brown:  { name: "بني",      h: 25,  s: 48, a: 36 },
-    green:  { name: "أخضر",     h: 158, s: 45, a: 40 },
-    teal:   { name: "فيروزي",   h: 186, s: 50, a: 34 },
-    blue:   { name: "أزرق",     h: 214, s: 48, a: 38 },
-    purple: { name: "بنفسجي",   h: 268, s: 32, a: 40 },
-    maroon: { name: "عنابي",    h: 350, s: 46, a: 36 },
-    slate:  { name: "رمادي",    h: 215, s: 14, a: 38 }
+    green:  { name: "زمردي",    h: 160, s: 62, a: 42 },
+    teal:   { name: "فيروزي",   h: 184, s: 64, a: 36 },
+    blue:   { name: "أزرق",     h: 212, s: 66, a: 38 },
+    indigo: { name: "نيلي",     h: 234, s: 52, a: 40 },
+    purple: { name: "بنفسجي",   h: 266, s: 46, a: 40 },
+    maroon: { name: "عنابي",    h: 346, s: 58, a: 36 },
+    brown:  { name: "بني",      h: 26,  s: 52, a: 40 },
+    amber:  { name: "كهرماني",  h: 36,  s: 72, a: 22 },
+    slate:  { name: "رمادي",    h: 215, s: 18, a: 38 }
   };
 
   const hsl = (h, s, l, al) => `hsl(${Math.round(h)} ${Math.round(s)}% ${l}%${al != null ? " / " + al : ""})`;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  /* لون الهوية واضح وحيوي في الوضعين: أغمق قليلًا في الفاتح ليقرأ عليه النص الأبيض، وأفتح في الداكن ليبان على الخلفية */
   function palette(t, dark){
-    const h = t.h, s = clamp(t.s, 8, 62), a = t.a;
+    const h = t.h, s = clamp(t.s, 8, 74), a = t.a;
     if (!dark) return {
-      "--bg": hsl(h, 12, 95.5), "--surface": "#ffffff", "--surface-2": hsl(h, 14, 97.2), "--line": hsl(h, 15, 90.5), "--line-strong": hsl(h, 13, 81),
-      "--fg": hsl(h, 22, 9), "--muted": hsl(h, 9, 39), "--faint": hsl(h, 7, 59),
-      "--brand": hsl(h, s, 20), "--brand-ink": "#ffffff", "--brand-soft": hsl(h, Math.min(45, s), 94),
-      "--gold": hsl(a, 46, 48), "--gold-hi": hsl(a, 56, 61), "--gold-soft": hsl(a, 62, 93),
-      "--side": hsl(h, s * .95, 11), "--side-2": hsl(h, s * .75, 16), "--side-fg": hsl(h, Math.min(50, s + 5), 90.5), "--side-muted": hsl(h, s * .45, 62), "--side-line": hsl(h, 45, 90, .09),
-      "--inc": "#118463", "--exp": "#c7792f", "--warnc": "#b07d12", "--info": "#3d6a8a",
-      "--good": "#18794e", "--good-bg": "#e8f3ec", "--warn": "#8a5d00", "--warn-bg": "#faf0d7", "--bad": "#b4372c", "--bad-bg": "#fbe9e6",
-      "--shadow": "0 1px 2px rgba(28,23,18,.04),0 2px 8px rgba(28,23,18,.04)",
-      "--shadow-lg": "0 4px 12px rgba(28,23,18,.08),0 24px 48px rgba(28,23,18,.16)",
+      "--bg": hsl(h, Math.min(20, s * .3), 96), "--surface": "#ffffff", "--surface-2": hsl(h, Math.min(24, s * .35), 97.6), "--line": hsl(h, Math.min(18, s * .3), 90), "--line-strong": hsl(h, Math.min(14, s * .25), 80),
+      "--fg": hsl(h, 20, 10), "--muted": hsl(h, 10, 38), "--faint": hsl(h, 8, 56),
+      "--brand": hsl(h, s, 30), "--brand-ink": "#ffffff", "--brand-soft": hsl(h, Math.min(60, s), 94),
+      "--gold": hsl(a, 62, 44), "--gold-hi": hsl(a, 72, 62), "--gold-soft": hsl(a, 70, 93),
+      "--side": hsl(h, s * .75, 15), "--side-2": hsl(h, s * .65, 21), "--side-fg": hsl(h, Math.min(40, s), 94), "--side-muted": hsl(h, s * .4, 72), "--side-line": hsl(h, 40, 90, .1),
+      "--inc": "#0f8a64", "--exp": "#c46a1c", "--warnc": "#b07d12", "--info": "#2f6fa3",
+      "--good": "#15784c", "--good-bg": "#e6f4ec", "--warn": "#8a5d00", "--warn-bg": "#fbf0d4", "--bad": "#b3362a", "--bad-bg": "#fbe8e5",
+      "--shadow": "0 1px 2px rgba(20,20,30,.04),0 2px 8px rgba(20,20,30,.04)",
+      "--shadow-lg": "0 4px 12px rgba(20,20,30,.08),0 24px 48px rgba(20,20,30,.16)",
       "color-scheme": "light"
     };
     return {
-      "--bg": hsl(h, 6, 6.5), "--surface": hsl(h, 6, 9.6), "--surface-2": hsl(h, 7, 11.2), "--line": hsl(h, 7, 17), "--line-strong": hsl(h, 8, 24.5),
-      "--fg": hsl(h, 18, 91.5), "--muted": hsl(h, 6, 63), "--faint": hsl(h, 5, 45),
-      "--brand": hsl(h, Math.min(58, s + 12), 75), "--brand-ink": hsl(h, 50, 7), "--brand-soft": hsl(h, s * .45, 14),
-      "--gold": hsl(a, 56, 61), "--gold-hi": hsl(a, 56, 61), "--gold-soft": hsl(a, 28, 14),
-      "--side": hsl(h, s * .4, 4), "--side-2": hsl(h, s * .45, 8), "--side-fg": hsl(h, Math.min(45, s), 89), "--side-muted": hsl(h, s * .4, 56), "--side-line": hsl(h, 40, 89, .08),
-      "--inc": "#2fa883", "--exp": "#c98238", "--warnc": "#d9a63c", "--info": "#79a7c7",
-      "--good": "#5cc496", "--good-bg": "#17291f", "--warn": "#e0b45a", "--warn-bg": "#342a15", "--bad": "#ef8a7f", "--bad-bg": "#3a1e1a",
+      "--bg": hsl(h, Math.min(18, s * .3), 7), "--surface": hsl(h, Math.min(16, s * .28), 10.5), "--surface-2": hsl(h, Math.min(16, s * .28), 13), "--line": hsl(h, Math.min(14, s * .25), 19), "--line-strong": hsl(h, Math.min(14, s * .25), 27),
+      "--fg": hsl(h, 16, 93), "--muted": hsl(h, 10, 70), "--faint": hsl(h, 7, 52),
+      "--brand": hsl(h, Math.min(72, s + 8), 62), "--brand-ink": hsl(h, 50, 8), "--brand-soft": hsl(h, s * .5, 17),
+      "--gold": hsl(a, 66, 62), "--gold-hi": hsl(a, 70, 66), "--gold-soft": hsl(a, 34, 15),
+      "--side": hsl(h, s * .5, 9), "--side-2": hsl(h, s * .5, 14), "--side-fg": hsl(h, Math.min(40, s), 92), "--side-muted": hsl(h, s * .3, 66), "--side-line": hsl(h, 40, 90, .08),
+      "--inc": "#3cbf94", "--exp": "#e0924a", "--warnc": "#e2b04a", "--info": "#7fb0d6",
+      "--good": "#5cc99a", "--good-bg": "#14291f", "--warn": "#e6bb5f", "--warn-bg": "#332914", "--bad": "#f08c80", "--bad-bg": "#3a1d19",
       "--shadow": "0 1px 2px rgba(0,0,0,.3)",
       "--shadow-lg": "0 4px 12px rgba(0,0,0,.35),0 24px 48px rgba(0,0,0,.5)",
       "color-scheme": "dark"
@@ -74,7 +77,7 @@
         const i1 = sm.indexOf(Math.max(...sm));
         const dist = i => Math.min(Math.abs(i - i1), 36 - Math.abs(i - i1));
         let i2 = -1, best = 0; sm.forEach((v, i) => { if (dist(i) >= 4 && v > best && v > total * .08) { best = v; i2 = i; } });
-        const h = i1 * 10 + 5, s = clamp(sat[i1] / (bins[i1] || 1) * 70, 22, 58);
+        const h = i1 * 10 + 5, s = clamp(sat[i1] / (bins[i1] || 1) * 76, 30, 68);
         ok({ h, s: Math.round(s), a: i2 >= 0 ? i2 * 10 + 5 : (h >= 15 && h <= 60 ? h + 10 : 38) });
       };
       img.onerror = () => ok(null);

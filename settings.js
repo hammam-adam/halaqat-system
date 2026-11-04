@@ -22,7 +22,7 @@
 .swatch:disabled{opacity:.45;cursor:not-allowed}
 .swatch i{display:block;width:46px;height:30px;border-radius:8px;position:relative;overflow:hidden}
 .swatch i b{position:absolute;inset-inline-start:0;bottom:0;width:100%;height:9px}
-.swatch span{font-size:12px}
+.swatch span{font-size:12.5px}
 .seg.mode-seg button{padding:6px 10px;font-size:12.5px}
 .set-wrap{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;align-items:start}
 .rg-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
@@ -32,7 +32,7 @@
 .set-tabs{display:grid;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:16px;position:sticky;top:16px}
 .set-tabs button{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:0;border-radius:10px;background:transparent;color:var(--fg);font:inherit;font-size:14px;text-align:start;cursor:pointer}
 .set-tabs button svg{width:18px;height:18px;flex:none;color:var(--muted)}
-.set-tabs button small{display:block;font-size:11.5px;color:var(--muted);font-weight:400;margin-top:1px}
+.set-tabs button small{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:1px}
 .set-tabs button:hover{background:var(--surface-2)}
 .set-tabs button[aria-pressed="true"]{background:var(--brand-soft);color:var(--brand);font-weight:600}
 .set-tabs button[aria-pressed="true"] svg{color:var(--brand)}
@@ -54,11 +54,11 @@
 .dev-list .ic{width:34px;height:34px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;flex:none;color:var(--muted)}
 .dev-list .ic svg{width:18px;height:18px}
 .dev-list b,.act-list b{font-weight:600;font-size:13.5px}
-.dev-list span,.act-list span{display:block;font-size:12px;color:var(--muted)}
+.dev-list span,.act-list span{display:block;font-size:12.5px;color:var(--muted)}
 .dev-list .grow,.act-list .grow{flex:1;min-width:0}
 .act-list .amt{font-weight:600;font-size:13.5px;white-space:nowrap}
 .who-me .me-name{color:var(--side-fg);font-weight:700;font-size:15px}
-#mePhone{font-size:12px;color:var(--side-muted);font-weight:400}
+#mePhone{font-size:12.5px;color:var(--side-muted);font-weight:400}
 .set-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
 .set-row .hint{margin:0;font-size:13px;color:var(--muted);line-height:1.7;max-width:60ch}
 .sys-panel:first-child{margin-top:0}

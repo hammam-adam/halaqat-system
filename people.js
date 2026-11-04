@@ -12,7 +12,7 @@
 .pp-row .grow{flex:1;min-width:0}
 .pp-row .nm{font-weight:600;font-size:14.5px}
 .pp-row .ch{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
-.pp-row .ch span{font-size:11.5px;padding:1px 8px;border-radius:999px;background:var(--surface,#fff);border:1px solid var(--line);color:var(--muted)}
+.pp-row .ch span{font-size:12px;padding:1px 8px;border-radius:999px;background:var(--surface,#fff);border:1px solid var(--line);color:var(--muted)}
 .pp-row .ph{font-size:13px;direction:ltr;text-align:right;white-space:nowrap}
 .pp-row .ph.bad{color:var(--bad,#b42318)}
 .pp-row .ph.none{color:var(--muted);direction:rtl}
@@ -64,7 +64,7 @@
       list.innerHTML = shown.length ? shown.map(p => {
         const phs = [...p.phones.keys()];
         const phHtml = !phs.length ? `<span class="ph none">بدون جوال</span>` : `<span class="ph${phs.length > 1 ? " bad" : ""}">${phs.map(showPhone).join("<br>")}</span>`;
-        return `<div class="pp-row"><div class="grow"><div class="nm">${esc(p.name)}${p.names.size > 1 ? ` <span class="sub" style="font-weight:400;font-size:12px;color:var(--muted)">يُكتب أيضًا: ${esc([...p.names].filter(x => x !== p.name).join("، "))}</span>` : ""}</div><div class="ch">${chips(p).map(c => `<span>${c}</span>`).join("")}</div></div>${phHtml}${ed && (p.teachers.length || p.guard.length || p.recv.length) ? `<button class="btn sm" type="button" data-pp-edit="${esc(p.k)}">تعديل</button>` : ""}</div>`;
+        return `<div class="pp-row"><div class="grow"><div class="nm">${esc(p.name)}${p.names.size > 1 ? ` <span class="sub" style="font-weight:400;font-size:12.5px;color:var(--muted)">يُكتب أيضًا: ${esc([...p.names].filter(x => x !== p.name).join("، "))}</span>` : ""}</div><div class="ch">${chips(p).map(c => `<span>${c}</span>`).join("")}</div></div>${phHtml}${ed && (p.teachers.length || p.guard.length || p.recv.length) ? `<button class="btn sm" type="button" data-pp-edit="${esc(p.k)}">تعديل</button>` : ""}</div>`;
       }).join("") + (rows.length > shown.length ? `<div class="pp-more">يظهر أول ${shown.length} من ${rows.length}. استخدم البحث للوصول للباقي.</div>` : "") : `<p class="hint">لا يوجد أشخاص مطابقون.</p>`;
       list.querySelectorAll("[data-pp-edit]").forEach(b => b.onclick = () => openPerson(b.dataset.ppEdit, () => paintPeople(body)));
     };

@@ -69,17 +69,17 @@
 .budget-line{display:flex;justify-content:space-between;gap:8px;align-items:baseline;padding:10px 12px;margin-bottom:10px;border-radius:10px;background:var(--side-2);color:var(--side-fg);font-size:12.5px}
 .budget-line b{font-size:15px;color:var(--gold-hi);font-variant-numeric:tabular-nums}
 .c-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 18px;margin:0}
-.c-info div{display:grid;gap:2px}.c-info dt{font-size:12px;color:var(--muted)}.c-info dd{margin:0;font-weight:600}
+.c-info div{display:grid;gap:2px}.c-info dt{font-size:12.5px;color:var(--muted)}.c-info dd{margin:0;font-weight:600}
 .c-note{padding:10px 12px;border-radius:10px;background:var(--warn-bg);color:var(--warn);font-size:13.5px;line-height:1.7}
 .c-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .c-sum div{padding:10px 12px;display:grid;gap:2px;border-inline-start:1px solid var(--line)}.c-sum div:first-child{border:0}
 .c-sum4{grid-template-columns:repeat(4,minmax(0,1fr))}
-.c-sum span{font-size:12px;color:var(--muted)}.c-sum b{font-size:16px;font-variant-numeric:tabular-nums}
+.c-sum span{font-size:12.5px;color:var(--muted)}.c-sum b{font-size:16px;font-variant-numeric:tabular-nums}
 .inv{display:grid;gap:8px}
 .inv-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 .inv-row .ic{width:36px;height:36px;flex:0 0 36px;border-radius:10px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}
 .inv-row .tx{flex:1;min-width:0}.inv-row .tx b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.inv-row .tx span{font-size:12px;color:var(--muted)}
+.inv-row .tx span{font-size:12.5px;color:var(--muted)}
 .inv-row .amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .sheet .content{grid-template-columns:minmax(0,1fr)}
 .inv-add{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-width:0;padding:14px;border:1px dashed var(--line-strong);border-radius:12px;background:var(--surface-2)}
@@ -91,7 +91,7 @@
 .file-view{display:grid;place-items:center;background:var(--surface-2);border-radius:12px;overflow:hidden}
 .file-view img{max-width:100%;max-height:70dvh;display:block}
 .file-view iframe{width:100%;height:70dvh;border:0}
-.c-sub{font-size:12px;color:var(--muted)}
+.c-sub{font-size:12.5px;color:var(--muted)}
 .sheet textarea{width:100%;resize:vertical;min-height:70px}
 #cBody[data-sum]:not(:has(.empty))::before{content:attr(data-sum);display:block;padding:10px 16px;font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--line)}
 @media (max-width:760px){.c-sum4{grid-template-columns:repeat(2,minmax(0,1fr))}.c-sum4 div:nth-child(3){border-inline-start:0}.c-sum4 div:nth-child(n+3){border-top:1px solid var(--line)}}

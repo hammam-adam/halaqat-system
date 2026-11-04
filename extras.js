@@ -145,8 +145,8 @@ tr.click,tr[data-c-open]{cursor:pointer}
   .panel>header{padding:8px 12px!important}
   .print-head{display:flex;align-items:center;gap:14px;padding-bottom:10px;margin-bottom:4px;border-bottom:2px solid #333}
   .print-head img{width:58px;height:auto}
-  .print-head .org{flex:1}.print-head .org b{display:block;font-size:17px}.print-head .org span{font-size:12px;color:#444}
-  .print-head .rt{text-align:left;font-size:12px;line-height:1.8}.print-head .rt b{display:block;font-size:16px}
+  .print-head .org{flex:1}.print-head .org b{display:block;font-size:17px}.print-head .org span{font-size:12.5px;color:#444}
+  .print-head .rt{text-align:left;font-size:12.5px;line-height:1.8}.print-head .rt b{display:block;font-size:16px}
   .print-sign{display:grid;grid-template-columns:repeat(2,1fr);gap:40px;margin-top:36px;break-inside:avoid;font-size:13px;text-align:center}
   .print-sign i{display:block;height:44px;border-bottom:1px dotted #555;margin-bottom:6px}
 }`;
@@ -418,14 +418,14 @@ ${a ? `<button class="btn sm ghost" type="button" data-tk-del="${t.id}">حذف</
 .msg-people label:hover{border-color:var(--line-strong)}
 .msg-people label:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}
 .msg-people input{width:16px;height:16px;accent-color:var(--brand);flex:none}
-.msg-people .nm{flex:1;min-width:0}.msg-people .nm b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.msg-people .nm span{font-size:12px;color:var(--muted)}
+.msg-people .nm{flex:1;min-width:0}.msg-people .nm b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.msg-people .nm span{font-size:12.5px;color:var(--muted)}
 .msg-form textarea{min-height:130px;resize:vertical;line-height:1.8}
-.msg-count{font-size:12px;color:var(--muted);text-align:left}
+.msg-count{font-size:12.5px;color:var(--muted);text-align:left}
 .msg-prev{white-space:pre-wrap;padding:12px 14px;border-radius:12px;background:#e9f6ec;border:1px solid #d3ebdc;font-size:13.5px;line-height:1.8;color:#1f3b2a}
 .msg-log{display:grid}
 .msg-log article{padding:12px 16px;border-top:1px solid var(--line);display:grid;gap:4px}
 .msg-log article:first-child{border-top:0}
-.msg-log .meta{font-size:12px;color:var(--muted)}
+.msg-log .meta{font-size:12.5px;color:var(--muted)}
 .msg-log p{margin:0;white-space:pre-wrap;line-height:1.8;font-size:14px}`;
   document.head.appendChild(css);
 

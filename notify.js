@@ -15,7 +15,7 @@
 @keyframes ntfIn{from{opacity:0;transform:translateY(-8px)}}
 @media (prefers-reduced-motion:reduce){.ntf{animation:none}}
 .bell{position:relative}
-.bell .bdot{position:absolute;top:2px;inset-inline-end:2px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--bad);color:#fff;font-size:10.5px;line-height:17px;text-align:center;font-weight:700}
+.bell .bdot{position:absolute;top:2px;inset-inline-end:2px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--bad);color:#fff;font-size:11.5px;line-height:17px;text-align:center;font-weight:700}
 .ntf-panel{position:fixed;z-index:390;top:70px;inset-inline-start:16px;width:min(380px,calc(100vw - 24px));max-height:min(70vh,560px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);direction:rtl}
 .ntf-panel header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface)}
 .ntf-panel header b{font-size:14.5px}
@@ -23,7 +23,7 @@
 .ntf-panel .row:first-of-type{border-top:0}
 .ntf-panel .row i{width:8px;height:8px;border-radius:50%;margin-top:7px;flex:none;background:var(--info)}
 .ntf-panel .row.good i{background:var(--good)}.ntf-panel .row.bad i{background:var(--bad)}
-.ntf-panel .row span{display:block;font-size:11.5px;color:var(--muted)}
+.ntf-panel .row span{display:block;font-size:12px;color:var(--muted)}
 .ntf-panel .none{padding:22px 14px;text-align:center;color:var(--muted);font-size:13px}`;
   document.head.appendChild(css);
 

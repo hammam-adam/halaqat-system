@@ -2,11 +2,9 @@
 // served by our own database functions (login_request / login_verify / app_* / member_*).
 (function(){
   const CFG = window.APP_CONFIG;
-  /* ---- runs before the app loads: light theme, splash, new sign-in screen ---- */
-  const LIGHT = "--bg:#f5f4f1;--surface:#ffffff;--surface-2:#f8f7f4;--line:#ebe7e0;--line-strong:#d8d1c5;--fg:#1c1712;--muted:#6e665b;--faint:#a0988c;--brand:#4a2e1a;--brand-ink:#ffffff;--brand-soft:#f5eee6;--gold:#b08442;--gold-hi:#d4aa64;--gold-soft:#f8f0e2;--side:#2a1b10;--side-2:#38251a;--side-fg:#f3e9da;--side-muted:#b4a189;--side-line:rgba(243,233,218,.09);--inc:#118463;--exp:#c7792f;--warnc:#b07d12;--info:#3d6a8a;--good:#18794e;--good-bg:#e8f3ec;--warn:#8a5d00;--warn-bg:#faf0d7;--bad:#b4372c;--bad-bg:#fbe9e6;--shadow:0 1px 2px rgba(28,23,18,.04),0 2px 8px rgba(28,23,18,.04);--shadow-lg:0 4px 12px rgba(28,23,18,.08),0 24px 48px rgba(28,23,18,.16);color-scheme:light";
+  /* ---- runs before the app loads: splash and sign-in screen (colours come from brand.js) ---- */
   const css = document.createElement("style");
   css.textContent = `
-:root:root{${LIGHT}}
 html.booting .app{visibility:hidden}
 .splash{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:var(--side);transition:opacity .25s}
 .splash.out{opacity:0;pointer-events:none}
@@ -24,13 +22,13 @@ html.booting .app{visibility:hidden}
 .auth-art .auth-tag{margin:0;color:var(--side-muted);font-size:14.5px}
 .auth-art blockquote{margin:34px 0 0;padding-top:26px;border-top:1px solid rgba(243,233,218,.14);max-width:340px;font-size:18px;font-weight:500;line-height:1.9;color:var(--side-fg)}
 .auth-art cite{display:block;margin-top:6px;font-style:normal;font-size:12.5px;color:var(--side-muted)}
-.auth-art .est{position:absolute;bottom:22px;left:0;right:0;font-size:12px;color:var(--side-muted)}
+.auth-art .est{position:absolute;bottom:22px;left:0;right:0;font-size:12.5px;color:var(--side-muted)}
 .auth-main{display:grid;place-items:center;align-content:center;gap:18px;padding:40px 24px}
 .auth-box{width:min(430px,100%);display:grid;gap:22px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:34px 32px;box-shadow:0 1px 2px rgba(28,23,18,.04),0 18px 48px -12px rgba(28,23,18,.14)}
 .auth-foot{font-size:12.5px;color:var(--faint);text-align:center}
 .auth-box .steps{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--faint)}
 .auth-box .steps span{display:inline-flex;align-items:center;gap:6px}
-.auth-box .steps b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--line);font-size:11.5px;color:var(--muted)}
+.auth-box .steps b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--line);font-size:12px;color:var(--muted)}
 .auth-box .steps .on{color:var(--fg);font-weight:600}
 .auth-box .steps .on b{background:var(--brand);border-color:var(--brand);color:#fff}
 .auth-box .steps .done b{background:var(--good-bg);border-color:transparent;color:var(--good)}
@@ -58,8 +56,8 @@ html.booting .app{visibility:hidden}
 .pw-wrap{display:flex;gap:6px;align-items:center}.pw-wrap input{flex:1;min-width:0}
 #pwIn{box-sizing:border-box;padding:12px 14px;border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);color:var(--fg);font:inherit;font-size:16px;min-height:52px}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-.auth-box .hint{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:#eef7f1;border:1px solid #d3ebdc;color:#2f5b40;font-size:13px;line-height:1.7}
-.auth-box .hint svg{color:#1f9d57;margin-top:3px;flex:none}
+.auth-box .hint{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--good-bg);border:1px solid color-mix(in srgb,var(--good) 25%,transparent);color:var(--good);font-size:13px;line-height:1.7}
+.auth-box .hint svg{color:var(--good);margin-top:3px;flex:none}
 .auth-box .lbl-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .auth-box .lbl-row .btn{padding:4px 8px;color:var(--brand);font-weight:600}
 .auth-box .row2{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -81,7 +79,7 @@ html.booting .app{visibility:hidden}
   /* ---- design layer: one formal typeface, no gold rules, calmer surfaces, bottom tab bar on phones ---- */
   const look = document.createElement("style");
   look.textContent = `
-:root:root{--f-display:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;--f-body:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;--r:16px;--line:#ece8e1;--shadow:0 1px 2px rgba(28,23,18,.04)}
+:root:root{--f-display:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;--f-body:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;--r:16px}
 body{letter-spacing:0}
 h1,h2,h3,h4{letter-spacing:0}
 .side-brand p{color:var(--side-muted)}
@@ -90,7 +88,7 @@ h1,h2,h3,h4{letter-spacing:0}
 .nav button[aria-selected="true"]{background:var(--side-2);color:#fff}
 .nav button[aria-selected="true"]::before{display:none}
 .nav button[aria-selected="true"] svg.i{color:#fff}
-.badge{background:#efe3cf;color:#2a1b10}
+.badge{background:var(--gold-hi);color:#1a1205}
 .kpi.lead b{color:#fff}
 .kpi.lead .kicon{color:var(--side-fg);background:rgba(243,233,218,.1)}
 .kpi{transition:box-shadow .15s,transform .15s}
@@ -105,7 +103,7 @@ h1,h2,h3,h4{letter-spacing:0}
 .dt tbody tr.click:hover{background:color-mix(in srgb,var(--brand) 4%,var(--surface))}
 .btn{border-radius:10px;transition:background .12s,border-color .12s,box-shadow .12s}
 .btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
-.btn.primary:hover{background:#3a2314}
+.btn.primary:hover{background:var(--brand);filter:brightness(1.12)}
 .sheet{border-radius:20px;box-shadow:0 24px 64px -16px rgba(28,23,18,.35)}
 .sheet>header,.sheet form>header{background:var(--surface)}
 .chip{border-radius:999px;padding:2px 10px}
@@ -113,9 +111,9 @@ h1,h2,h3,h4{letter-spacing:0}
 .seg button{border-radius:9px}
 @media (max-width:980px){
   .nav{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;gap:0;margin:0;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));background:var(--side);border-top:1px solid rgba(243,233,218,.08);overflow-x:auto}
-  .nav button{flex:1 1 0;min-width:42px;flex-direction:column;justify-content:center;gap:3px;padding:7px 2px;font-size:10.5px;line-height:1.25;border-radius:10px;text-align:center;white-space:normal}
+  .nav button{flex:1 1 0;min-width:42px;flex-direction:column;justify-content:center;gap:3px;padding:7px 2px;font-size:11.5px;line-height:1.25;border-radius:10px;text-align:center;white-space:normal}
   .nav button svg.i{width:21px;height:21px}
-  .nav button .badge{position:absolute;top:3px;inset-inline-start:calc(50% + 4px);margin:0;min-width:18px;padding:0 5px;font-size:10.5px;line-height:17px}
+  .nav button .badge{position:absolute;top:3px;inset-inline-start:calc(50% + 4px);margin:0;min-width:18px;padding:0 5px;font-size:11.5px;line-height:17px}
   .side{padding-bottom:12px}
   .work-inner{padding-bottom:110px}
   .topbar{padding:10px 12px}
