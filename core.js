@@ -38,7 +38,7 @@ const pad = n => String(n).padStart(2,"0");
 const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
 const thisMonth = () => todayISO().slice(0,7);
 const nf = new Intl.NumberFormat("ar-SA-u-nu-latn",{minimumFractionDigits:0,maximumFractionDigits:2});
-const fmt = v => { const r=Math.round((+v||0)*100)/100; return r<0 ? `(${nf.format(-r)})` : nf.format(r); };
+const fmt = v => { const r=Math.round((+v||0)*100)/100; return r<0 ? `\u200E-${nf.format(-r)}` : nf.format(r); };
 const money = v => fmt(v) + " ر.س";
 const mh = v => `<span class="num">${fmt(v)}</span><small>ر.س</small>`;
 const moneyShort = v => { const a=Math.abs(v); return a>=1000 ? nf.format(Math.round(v/100)/10)+" ألف" : nf.format(Math.round(v)); };
