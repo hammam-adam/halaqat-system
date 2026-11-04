@@ -86,7 +86,7 @@
   const GEAR = `<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>`;
   const navSet = document.getElementById("navUsers");
   if (navSet) { navSet.dataset.view = "settings"; navSet.innerHTML = GEAR + "الإعدادات"; navSet.hidden = false; }
-  const TABS = [["account", "حسابي", () => true], ["look", "المظهر", () => true], ["users", "المستخدمون", () => S.canSys], ["wa", "واتساب", () => S.canSys], ["cats", "البنود والأنواع", () => !!S.db],
+  const TABS = [["account", "حسابي", () => true], ["look", "المظهر", () => true], ["users", "المستخدمون", () => S.canSys], ["wa", "واتساب", () => S.canSys], ["people", "الأشخاص", () => !!S.db], ["cats", "البنود والأنواع", () => !!S.db],
     ["log", "سجل التعديلات", () => S.isAdmin], ["backup", "النسخ الاحتياطي", () => S.isAdmin]];
   let tab = "account";
   try { tab = localStorage.getItem("halaqat.setTab") || "account"; } catch (e) {}
@@ -98,10 +98,11 @@
     users: svg('<circle cx="9" cy="8" r="3"/><path d="M3.5 19c.5-3 2.8-4.8 5.5-4.8s5 1.8 5.5 4.8M16 5.5a3 3 0 0 1 0 5.5M18 14.5c1.6.6 2.6 2.1 2.9 4.5"/>'),
     wa: svg('<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1z"/>'),
     log: svg('<path d="M12 7v5l3 2"/><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6L3.5 8.5"/><path d="M3.5 4v4.5H8"/>'),
+    people: svg('<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.6-3.4 3.4-5.5 7-5.5s6.4 2.1 7 5.5"/><path d="M18 4v5M15.5 6.5h5"/>'),
     cats: svg('<path d="M4 6h10M4 12h16M4 18h7"/><circle cx="17" cy="6" r="2"/><circle cx="14" cy="18" r="2"/>'),
     backup: svg('<path d="M12 3v11M7.5 9.5 12 14l4.5-4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>')
   };
-  const TAB_SUB = { account: "بياناتك وكلمة المرور والأجهزة", look: "الوضع الفاتح والداكن والألوان", users: "الحسابات وصلاحياتها", wa: "رقم الإرسال ومفتاح الربط", cats: "بنود السندات وأنواع المستحقات", log: "من عدّل ماذا ومتى", backup: "نسخ البيانات وتنزيلها" };
+  const TAB_SUB = { account: "بياناتك وكلمة المرور والأجهزة", look: "الوضع الفاتح والداكن والألوان", users: "الحسابات وصلاحياتها", wa: "رقم الإرسال ومفتاح الربط", people: "الأسماء والجوالات في مكان واحد", cats: "بنود السندات وأنواع المستحقات", log: "من عدّل ماذا ومتى", backup: "نسخ البيانات وتنزيلها" };
 
   views.settings = {
     shell(){
@@ -130,7 +131,8 @@ ${roleGuide()}<section class="panel" id="memberList"></section>`;
     } else if (tab === "wa") {
       body.innerHTML = `<section class="panel sys-panel" id="sysSettings"><header><h3>ربط واتساب</h3></header><div class="ss-body"><p class="hint">جارٍ التحميل…</p></div></section>`;
       paintWa();
-    } else if (tab === "cats") window.paintCats ? paintCats(body) : (body.innerHTML = "");
+    } else if (tab === "people") window.paintPeople ? paintPeople(body) : (body.innerHTML = "");
+    else if (tab === "cats") window.paintCats ? paintCats(body) : (body.innerHTML = "");
     else if (tab === "log") window.paintAudit ? paintAudit(body) : (body.innerHTML = "");
     else if (tab === "backup") window.paintBackup ? paintBackup(body) : (body.innerHTML = "");
     else paintAccount();
